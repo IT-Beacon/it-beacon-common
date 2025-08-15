@@ -56,4 +56,4 @@ jobs:
 
     # Push package to GitHub Packages
     - name: Push to GitHub Packages
-      run: dotnet nuget push "artifacts/*.nupkg" --source "github" --api-key ${{ secrets.NUGET_AUTH_TOKEN }}
+      run: dotnet nuget push "artifacts/*.nupkg" --source "github" --api-key "${{ secrets.NUGET_AUTH_TOKEN }}"
