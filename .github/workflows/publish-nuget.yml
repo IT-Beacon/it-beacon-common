@@ -2,8 +2,10 @@ name: Publish NuGet Package
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'   # Only run when a version tag like v1.2.3 is pushed
 
 jobs:
   build:
@@ -22,7 +24,7 @@ jobs:
     - name: Add GitHub Packages source
       run: dotnet nuget add source `
             --username ${{ github.actor }} `
-            --password ${{ secrets.NUGET_AUTH_TOKEN }} ` 
+            --password ${{ secrets.NUGET_AUTH_TOKEN }} `
             --store-password-in-clear-text `
             --name github `
             "https://nuget.pkg.github.com/IT-Beacon/index.json"
