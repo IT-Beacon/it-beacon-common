@@ -13,47 +13,63 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
+    # 1. Checkout
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # Needed for GitVersion
 
+    # 2. Check secret exists
+    - name: Verify NuGet API Key is set
+      run: |
+        if ("${{ secrets.NUGET_AUTH_TOKEN }}" -eq "") {
+        Write-Error "NUGET_AUTH_TOKEN secret is not set. Please set it in GitHub - Settings - Secrets."
+        exit 1
+        }
+
+    # 3. Setup .NET
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: '8.0.x'
 
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0
-      with:
-        versionSpec: '5.x'
+    # 4. Add GitHub Packages source (skip if already exists)
+    - name: Add GitHub NuGet source
+      run: |
+        try {
+        dotnet nuget remove source github
+        } catch {
+        Write-Host "No existing github source to remove."
+        }
+        dotnet nuget add source "https://nuget.pkg.github.com/IT-Beacon/index.json" `
+        --name github `
+        --username IT-Beacon `
+        --password "${{ secrets.NUGET_AUTH_TOKEN }}" `
+        --store-password-in-clear-text
 
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v0
-
-    - name: Restore dependencies
+    # 5. Restore dependencies
+    - name: Restore
       run: dotnet restore
 
+    # 6. Build
     - name: Build
-      run: dotnet build --configuration Release /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+      run: dotnet build --configuration Release --no-restore
 
-    - name: Pack
-      run: dotnet pack --configuration Release --output ./artifacts /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
+    # 7. Pack NuGet package
+    - name: Pack NuGet package
+      run: dotnet pack --configuration Release --output artifacts
 
-    # Remove GitHub Packages source if it already exists
-    - name: Remove existing GitHub source (if any)
-      run: dotnet nuget remove source github || echo "No existing source to remove"
+    # 8. Verify .nupkg exists
+    - name: Verify package exists
+      run: |
+        $pkg = Get-ChildItem artifacts -Filter *.nupkg
+        if (-not $pkg) {
+        Write-Error "No .nupkg found in artifacts folder. dotnet pack likely failed."
+        exit 1
+        }
+        Write-Host "Found package: $($pkg.FullName)"
 
-    # Add GitHub Packages as a NuGet source
-    - name: Add GitHub Packages source
-      run: dotnet nuget add source `
-            --username ${{ github.actor }} `
-            --password ${{ secrets.NUGET_AUTH_TOKEN }} `
-            --store-password-in-clear-text `
-            --name github `
-            "https://nuget.pkg.github.com/IT-Beacon/index.json"
-
-    # Push package to GitHub Packages
+    # 9. Push package
     - name: Push to GitHub Packages
       run: dotnet nuget push "artifacts/*.nupkg" --source "github" --api-key "${{ secrets.NUGET_AUTH_TOKEN }}"
