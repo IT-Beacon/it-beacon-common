@@ -2,48 +2,40 @@ name: Publish NuGet Package
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
 
     steps:
-      # 1. Checkout code
-      - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      # 2. Setup .NET
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
 
-      # 3. Authenticate with GitHub Packages
-      - name: Add GitHub Packages source
-        run: dotnet nuget add source \
-          --username ${{ github.actor }} \
-          --password ${{ secrets.NUGET_AUTH_TOKEN }} \
-          --store-password-in-clear-text \
-          --name github \
-          "https://nuget.pkg.github.com/IT-Beacon/index.json"
+    # Add GitHub Packages as a NuGet source
+    - name: Add GitHub Packages source
+      run: dotnet nuget add source `
+            --username ${{ github.actor }} `
+            --password ${{ secrets.NUGET_AUTH_TOKEN }} `
+            --store-password-in-clear-text `
+            --name github `
+            "https://nuget.pkg.github.com/IT-Beacon/index.json"
 
-      # 4. Restore dependencies
-      - name: Restore dependencies
-        run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore
 
-      # 5. Build the project
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
 
-      # 6. Pack NuGet package
-      - name: Pack
-        run: dotnet pack --configuration Release --no-build --output ./artifacts
+    - name: Pack NuGet package
+      run: dotnet pack --configuration Release --no-build --output artifacts
 
-      # 7. List artifacts for debugging
-      - name: List artifacts
-        run: ls -R artifacts
-
-      # 8. Push to GitHub Packages
-      - name: Push to GitHub Packages
-        run: dotnet nuget push "artifacts/*.nupkg" --source "github" --api-key ${{ secrets.NUGET_AUTH_TOKEN }}
+    # Push package to GitHub Packages
+    - name: Push to GitHub Packages
+      run: dotnet nuget push "artifacts/*.nupkg" --source "github" --api-key ${{ secrets.NUGET_AUTH_TOKEN }}
