@@ -2,42 +2,61 @@ name: Publish NuGet Package
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'   # Only run when a version tag like v1.2.3 is pushed
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required for GitVersion to see all commits
 
-      - name: Install .NET SDK
+    steps:
+      # 1. Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Install .NET SDK
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      # 3. Install GitVersion
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0
+        uses: GitTools/actions/gitversion/setup@v0.10.2
         with:
           versionSpec: '5.x'
 
-      - name: Determine version
+      # 4. Determine version
+      - name: Use GitVersion
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0
+        uses: GitTools/actions/gitversion/execute@v0.10.2
 
+      # 5. Create artifacts folder
+      - name: Create artifacts folder
+        run: New-Item -ItemType Directory -Force -Path artifacts
+
+      # 6. Restore NuGet packages
       - name: Restore dependencies
         run: dotnet restore
 
+      # 7. Build
       - name: Build
-        run: dotnet build --configuration Release /p:Version=${{ steps.gitversion.outputs.FullSemVer }}
+        run: dotnet build --configuration Release
 
-      - name: Pack NuGet
-        run: dotnet pack --configuration Release /p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }} --no-build -o ./artifacts
+      # 8. Pack NuGet
+      - name: Pack NuGet package
+        run: dotnet pack --configuration Release /p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }} -o artifacts
 
+      # 9. Verify package file exists
+      - name: Verify package file
+        run: |
+          Write-Host "Checking for .nupkg file in artifacts folder..."
+          Get-ChildItem artifacts
+          if (-not (Test-Path "artifacts\*.nupkg")) {
+            Write-Error "No .nupkg file found in artifacts folder!"
+            exit 1
+          }
+
+      # 10. Push package to GitHub Packages
       - name: Push to GitHub Packages
-        run: dotnet nuget push ./artifacts/*.nupkg --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet nuget push "artifacts\*.nupkg" --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
