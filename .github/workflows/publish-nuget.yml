@@ -2,6 +2,8 @@ name: Publish NuGet Package
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'   # Only run when a version tag like v1.2.3 is pushed
 
