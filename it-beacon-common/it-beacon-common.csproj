@@ -20,7 +20,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Folder structure -->
-    <Folder Include="Assets\Icons\" />
     <Folder Include="Assets\Images\" />
     <Folder Include="Helpers\" />
     <Folder Include="Models\" />
@@ -28,5 +27,11 @@
     <None Include="Assets\**\*" Pack="true" PackagePath="assets\" />
     <!-- Include all files in Config in the NuGet package -->
     <None Include="Config\**\*" Pack="true" PackagePath="config\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Assets\Icons\beacon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Icons\beacon.ico" />
   </ItemGroup>
 </Project>
