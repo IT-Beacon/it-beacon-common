@@ -49,9 +49,11 @@ jobs:
 
       - name: Get base version from csproj
         id: get_version
+        shell: pwsh
         run: |
-          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" it-beacon-common/it-beacon-common.csproj)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+            [xml]$csproj = Get-Content it-beacon-common/it-beacon-common.csproj
+            $version = $csproj.Project.PropertyGroup.Version
+            echo "version=$version" >> $env:GITHUB_OUTPUT
 
       # 8. Pack NuGet
       - name: Pack NuGet package
