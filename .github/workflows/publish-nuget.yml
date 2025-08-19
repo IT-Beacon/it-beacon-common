@@ -47,19 +47,9 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Get base version from csproj
-        id: get_version
-        shell: pwsh
-        run: |
-            [xml]$csproj = Get-Content it-beacon-common/it-beacon-common.csproj
-            $version = $csproj.Project.PropertyGroup.Version
-            echo "version=$version" >> $env:GITHUB_OUTPUT
-
       # 8. Pack NuGet
-      - name: Pack NuGet package
-        run: dotnet pack --configuration Release \
-          -p:PackageVersion=${{ steps.get_version.outputs.version }}-${{ github.run_number }} \
-          -o artifacts
+      - name: Pack NuGet
+        run: dotnet pack -p:PackageVersion=1.0.${{ github.run_number }} -o artifacts
 
       # 9. Verify package file exists
       - name: Verify package file
