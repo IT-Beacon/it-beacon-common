@@ -47,9 +47,17 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
+      - name: Get base version from csproj
+        id: get_version
+        run: |
+          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" it-beacon-common/it-beacon-common.csproj)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       # 8. Pack NuGet
       - name: Pack NuGet package
-        run: dotnet pack --configuration Release /p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }} -o artifacts
+        run: dotnet pack --configuration Release \
+          -p:PackageVersion=${{ steps.get_version.outputs.version }}-${{ github.run_number }} \
+          -o artifacts
 
       # 9. Verify package file exists
       - name: Verify package file
