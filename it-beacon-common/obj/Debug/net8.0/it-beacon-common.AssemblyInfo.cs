@@ -16,8 +16,8 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Common library for IT Beacon, providing shared helpers, models, assets, and confi" +
     "gs.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1-3+Branch.main.Sha.dcb152ed70590306b41574f63d62606e80001af3.c31bbde015b430ad" +
-    "afbd8be16923b4eca445f8bc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1-3+Branch.main.Sha.dcb152ed70590306b41574f63d62606e80001af3.cb62c623eef8ecd0" +
+    "b0913e466b1ad81d47407249")]
 [assembly: System.Reflection.AssemblyProductAttribute("it-beacon-common")]
 [assembly: System.Reflection.AssemblyTitleAttribute("it-beacon-common")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.0.1.0")]
