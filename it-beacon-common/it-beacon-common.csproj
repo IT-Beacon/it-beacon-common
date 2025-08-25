@@ -26,5 +26,8 @@
 
 		<!-- Config files are shipped separately -->
 		<None Include="Config\**\*" Pack="true" PackagePath="config\" />
+
+		<!-- Embed WPF resource dictionaries (so they are compiled into the assembly) -->
+		<Page Include="Themes\*.xaml" Pack="true" PackagePath="themes\" />
 	</ItemGroup>
 </Project>
