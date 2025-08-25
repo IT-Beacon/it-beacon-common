@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace it_beacon_common.Helpers
 {
@@ -13,70 +14,103 @@ namespace it_beacon_common.Helpers
     /// </summary>
     public static class ThemeHelpers
     {
-        private const string RegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-        private const string RegistryValueName = "AppsUseLightTheme";
+        public static bool IsLightTheme => GetSystemTheme();
+
+        public static event Action? ThemeChanged;
+
+        public static Color Lighten(Color color, double factor)
+        {
+            return Color.FromRgb(
+                (byte)Math.Min(255, color.R + (255 - color.R) * factor),
+                (byte)Math.Min(255, color.G + (255 - color.G) * factor),
+                (byte)Math.Min(255, color.B + (255 - color.B) * factor)
+            );
+        }
+
+        public static Color Darken(Color color, double factor)
+        {
+            return Color.FromRgb(
+                (byte)(color.R * (1 - factor)),
+                (byte)(color.G * (1 - factor)),
+                (byte)(color.B * (1 - factor))
+            );
+        }
 
         /// <summary>
-        /// Gets whether the system is currently using Light theme.
+        /// Apply current theme to app resources (brushes, etc.)
         /// </summary>
-        public static bool IsLightTheme
+        public static void ApplyTheme()
         {
-            get
+            bool useLightTheme = IsLightTheme;
+
+            if (useLightTheme)
             {
-                try
-                {
-                    using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
-                    object? registryValueObject = key?.GetValue(RegistryValueName);
+                Application.Current.Resources["PopupBackgroundBrush"] = new SolidColorBrush(Colors.White);
+                Application.Current.Resources["PopupForegroundBrush"] = new SolidColorBrush(Colors.Black);
+                Application.Current.Resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(200, 200, 200));
+                Application.Current.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(243, 243, 243));
+                Application.Current.Resources["ButtonForegroundBrush"] = new SolidColorBrush(Colors.Black);
+                Application.Current.Resources["ButtonBorderBrush"] = new SolidColorBrush(Color.FromRgb(208, 208, 208));
+            }
+            else
+            {
+                Application.Current.Resources["PopupBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                Application.Current.Resources["PopupForegroundBrush"] = new SolidColorBrush(Colors.White);
+                Application.Current.Resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
+                Application.Current.Resources["ButtonBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(45, 45, 45));
+                Application.Current.Resources["ButtonForegroundBrush"] = new SolidColorBrush(Colors.White);
+                Application.Current.Resources["ButtonBorderBrush"] = new SolidColorBrush(Color.FromRgb(80, 80, 80));
+            }
 
-                    if (registryValueObject == null)
-                        return true; // Default to light if missing
+            var accent = SystemParameters.WindowGlassColor;
 
-                    int registryValue = (int)registryValueObject;
-                    return registryValue > 0;
-                }
-                catch
-                {
-                    return true; // Fail safe: assume light
-                }
+            var resources = Application.Current.Resources;
+            resources["AccentBrush"] = new SolidColorBrush(accent);
+            resources["AccentHoverBrush"] = new SolidColorBrush(Lighten(accent, 0.25)); // 25% lighter
+            resources["AccentPressedBrush"] = new SolidColorBrush(Darken(accent, 0.2)); // 20% darker
+        }
+
+        /// <summary>
+        /// Start listening to Windows theme changes
+        /// </summary>
+        public static void ListenForThemeChanges()
+        {
+            SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+        }
+
+        private static void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+        {
+            if (e.Category == UserPreferenceCategory.General ||
+                e.Category == UserPreferenceCategory.Color)
+            {
+                ApplyTheme(); // update immediately
+                ThemeChanged?.Invoke();
             }
         }
 
         /// <summary>
-        /// Applies the correct theme ResourceDictionary (BeaconUI.xaml) to the application.
-        /// Call this at startup and on theme changes.
+        /// Reads Windows registry for current theme preference
         /// </summary>
-        public static void ApplyTheme(ResourceDictionary lightTheme, ResourceDictionary darkTheme)
+        private static bool GetSystemTheme()
         {
-            var appResources = Application.Current.Resources.MergedDictionaries;
-
-            // Remove any existing theme dictionaries
-            for (int i = appResources.Count - 1; i >= 0; i--)
+            try
             {
-                var dict = appResources[i];
-                if (dict.Source != null &&
-                    (dict.Source.OriginalString.Contains("BeaconUI.Light.xaml") ||
-                     dict.Source.OriginalString.Contains("BeaconUI.Dark.xaml")))
+                using var key = Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+
+                if (key != null)
                 {
-                    appResources.RemoveAt(i);
+                    object? value = key.GetValue("AppsUseLightTheme");
+                    if (value is int intVal)
+                    {
+                        return intVal > 0;
+                    }
                 }
             }
+            catch { }
 
-            // Add the correct theme dictionary
-            appResources.Add(IsLightTheme ? lightTheme : darkTheme);
-        }
-
-        /// <summary>
-        /// Watches for registry changes and applies theme updates automatically.
-        /// </summary>
-        public static void RegisterThemeChangeListener(Action onThemeChanged)
-        {
-            SystemEvents.UserPreferenceChanged += (s, e) =>
-            {
-                if (e.Category == UserPreferenceCategory.General)
-                {
-                    onThemeChanged?.Invoke();
-                }
-            };
+            // Default to Light if unknown
+            return true;
         }
     }
 }
