@@ -29,5 +29,8 @@
 
 		<!-- Embed WPF resource dictionaries (so they are compiled into the assembly) -->
 		<!-- <Page Include="Themes\*.xaml" Pack="true" PackagePath="themes\" /> -->
-	</ItemGroup>
+		
+		<Compile Include="Helpers\**\*.cs" />
+	</ItemGroup> 
+
 </Project>
