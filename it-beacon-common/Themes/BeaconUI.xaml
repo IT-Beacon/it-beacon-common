@@ -2,8 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ============================= -->
-    <!-- Theme Brushes (shared)        -->
+    <!-- Theme Brushes (Light)         -->
     <!-- ============================= -->
+    <SolidColorBrush x:Key="PopupBackgroundLight" Color="White"/>
+    <SolidColorBrush x:Key="PopupForegroundLight" Color="Black"/>
+    <SolidColorBrush x:Key="PopupBorderLight" Color="Gray"/>
+
+    <!-- Theme Brushes (Dark)          -->
+    <SolidColorBrush x:Key="PopupBackgroundDark" Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="PopupForegroundDark" Color="White"/>
+    <SolidColorBrush x:Key="PopupBorderDark" Color="#555555"/>
+
+    <!-- Aliases (remapped by ThemeHelper at runtime) -->
     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="White"/>
     <SolidColorBrush x:Key="PopupForegroundBrush" Color="Black"/>
     <SolidColorBrush x:Key="PopupBorderBrush" Color="Gray"/>

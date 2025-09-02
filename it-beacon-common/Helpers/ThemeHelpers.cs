@@ -1,9 +1,5 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -43,42 +39,58 @@ namespace it_beacon_common.Helpers
         }
 
         /// <summary>
-        /// Applies BeaconUI.xaml to the Application resources.
+        /// Applies the appropriate light or dark theme brushes to the application's resources.
         /// </summary>
         public static void ApplyTheme()
         {
-            var appResources = Application.Current.Resources.MergedDictionaries;
+            var resources = Application.Current.Resources;
+            bool useLightTheme = IsLightTheme;
 
-            // Remove existing BeaconUI dictionary if already present
-            for (int i = appResources.Count - 1; i >= 0; i--)
+            // Set brushes for light or dark theme
+            if (useLightTheme)
             {
-                var dict = appResources[i];
-                if (dict.Source != null &&
-                    dict.Source.OriginalString.Contains("BeaconUI.xaml", StringComparison.OrdinalIgnoreCase))
-                {
-                    appResources.RemoveAt(i);
-                }
+                resources["PopupBackgroundBrush"] = new SolidColorBrush(Colors.White);
+                resources["PopupForegroundBrush"] = new SolidColorBrush(Colors.Black);
+                resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(220, 220, 220));
+            }
+            else
+            {
+                resources["PopupBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                resources["PopupForegroundBrush"] = new SolidColorBrush(Colors.White);
+                resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
             }
 
-            // Add BeaconUI.xaml back in (handles both light/dark via DynamicResource)
-            appResources.Add(new ResourceDictionary
-            {
-                Source = new Uri("pack://application:,,,/it-beacon-common;component/Themes/BeaconUI.xaml")
-            });
+            // Handle Windows Accent Color for buttons and highlights
+            var accent = SystemParameters.WindowGlassColor;
+            resources["AccentBrush"] = new SolidColorBrush(accent);
+            resources["AccentHoverBrush"] = new SolidColorBrush(Lighten(accent, 0.25));
+            resources["AccentPressedBrush"] = new SolidColorBrush(Darken(accent, 0.2));
         }
 
         /// <summary>
-        /// Watches for registry changes and reapplies BeaconUI automatically.
+        /// Watches for registry changes and reapplies the theme automatically.
         /// </summary>
         public static void RegisterThemeChangeListener()
         {
             SystemEvents.UserPreferenceChanged += (s, e) =>
             {
-                if (e.Category == UserPreferenceCategory.General)
+                if (e.Category == UserPreferenceCategory.General || e.Category == UserPreferenceCategory.Color)
                 {
-                    ApplyTheme();
+                    Application.Current.Dispatcher.Invoke(ApplyTheme);
                 }
             };
         }
+
+        private static Color Lighten(Color color, double factor) => Color.FromRgb(
+            (byte)Math.Min(255, color.R + (255 - color.R) * factor),
+            (byte)Math.Min(255, color.G + (255 - color.G) * factor),
+            (byte)Math.Min(255, color.B + (255 - color.B) * factor)
+        );
+
+        private static Color Darken(Color color, double factor) => Color.FromRgb(
+            (byte)(color.R * (1 - factor)),
+            (byte)(color.G * (1 - factor)),
+            (byte)(color.B * (1 - factor))
+        );
     }
 }
