@@ -1,12 +1,22 @@
 {
   "version": 2,
-  "dgSpecHash": "j4rt/Xm8Ryo=",
+  "dgSpecHash": "/xX0ciSOiqE=",
   "success": true,
   "projectFilePath": "C:\\Users\\yok0001\\source\\repos\\it-beacon-common\\it-beacon-common\\it-beacon-common.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\yok0001\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
     "C:\\Users\\yok0001\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\yok0001\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
     "C:\\Users\\yok0001\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://nuget.pkg.github.com/IT-Beacon/index.json.",
+      "projectPath": "C:\\Users\\yok0001\\source\\repos\\it-beacon-common\\it-beacon-common\\it-beacon-common.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\yok0001\\source\\repos\\it-beacon-common\\it-beacon-common\\it-beacon-common.csproj",
+      "targetGraphs": []
+    }
+  ]
 }

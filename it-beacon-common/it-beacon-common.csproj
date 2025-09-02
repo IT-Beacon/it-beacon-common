@@ -5,11 +5,7 @@
 		<RootNamespace>it_beacon_common</RootNamespace>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
-		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-
 		<PackageId>it-beacon-common</PackageId>
-		<Version>0.0.1-3</Version>
 		<Authors>Yo Khoe</Authors>
 		<Company></Company>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,20 +13,13 @@
 		<RepositoryType>git</RepositoryType>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Common library for IT Beacon, providing shared helpers, models, assets, and configs.</Description>
-		<AssemblyVersion>0.0.1.0</AssemblyVersion>
-		<FileVersion>0.0.1.0</FileVersion>
-		<InformationalVersion>0.0.1-3+Branch.main.Sha.dcb152ed70590306b41574f63d62606e80001af3</InformationalVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Resource Include="Assets\Icons\**\*" Pack="true" PackagePath="\" />
-		<Resource Include="Assets\Images\**\*" Pack="true" PackagePath="\" />
+		<Resource Include="Assets\Icons\**\*" />
+		<Resource Include="Assets\Images\**\*" />
 
 		<None Include="Config\**\*" Pack="true" PackagePath="config\" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Include="**\*.cs" />
 	</ItemGroup>
 
 </Project>
