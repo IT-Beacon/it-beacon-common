@@ -57,7 +57,7 @@ jobs:
 
       # 8. Pack NuGet
       - name: Pack NuGet
-        run: dotnet pack -p:PackageVersion=${{ steps.gitversion.outputs.majorMinorPatch }} -o artifacts
+        run: dotnet pack -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o artifacts
 
       # 9. Verify package file exists
       - name: Verify package file
