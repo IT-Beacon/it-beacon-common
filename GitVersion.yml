@@ -3,6 +3,8 @@ branches:
   main:
     increment: Patch
     regex: main
+    # Add this line to create a unique pre-release tag for each build
+    tag: ci 
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
 ignore:
