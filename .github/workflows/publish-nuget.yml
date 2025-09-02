@@ -10,6 +10,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: windows-latest
+    permissions:
+      contents: read
+      packages: write # Required to push packages to GitHub Packages
 
     steps:
       # 1. Checkout repo
@@ -23,6 +26,11 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+          # Add this to configure nuget.org for restore operations
+          source-url: https://api.nuget.org/v3/index.json
+        env:
+          # And configure the GitHub Packages source
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 3. Install GitVersion
       - name: Install GitVersion
@@ -49,7 +57,7 @@ jobs:
 
       # 8. Pack NuGet
       - name: Pack NuGet
-        run: dotnet pack -p:PackageVersion=1.0.${{ github.run_number }} -o artifacts
+        run: dotnet pack -p:PackageVersion=${{ steps.gitversion.outputs.majorMinorPatch }} -o artifacts
 
       # 9. Verify package file exists
       - name: Verify package file
@@ -63,6 +71,4 @@ jobs:
 
       # 10. Push package to GitHub Packages
       - name: Push to GitHub Packages
-        env:
-          AUTH_TOKEN: "${{ secrets.NUGET_AUTH_TOKEN }}"
-        run: dotnet nuget push "artifacts\*.nupkg" --source "github" --api-key $env:AUTH_TOKEN
+        run: dotnet nuget push "artifacts\*.nupkg" --source "github" --api-key ${{ secrets.GITHUB_TOKEN }}
