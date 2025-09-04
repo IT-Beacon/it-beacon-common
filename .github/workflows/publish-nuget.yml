@@ -26,10 +26,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          # Add this to configure nuget.org for restore operations
           source-url: https://api.nuget.org/v3/index.json
         env:
-          # And configure the GitHub Packages source
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 3. Install GitVersion
@@ -57,7 +55,7 @@ jobs:
 
       # 8. Pack NuGet
       - name: Pack NuGet
-        run: dotnet pack -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o artifacts
+        run: dotnet pack -p:PackageVersion=${{ steps.gitversion.outputs.majorMinorPatch }}-ci.${{ github.run_number }} -o artifacts
 
       # 9. Verify package file exists
       - name: Verify package file
