@@ -41,6 +41,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="4">
+                        <!-- This change ensures the content (the icon) is always centered -->
                         <ContentPresenter HorizontalAlignment="Center" 
                                           VerticalAlignment="Center"
                                           Margin="{TemplateBinding Padding}"/>
