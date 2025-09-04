@@ -33,6 +33,7 @@
         <Setter Property="Padding" Value="10"/>
         <Setter Property="Margin" Value="5"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Height" Value="40"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -41,10 +42,10 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="4">
-                        <!-- This change ensures the content (the icon) is always centered -->
-                        <ContentPresenter HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center"
-                                          Margin="{TemplateBinding Padding}"/>
+                        <!-- The Viewbox will scale and center the icon -->
+                        <Viewbox Margin="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Viewbox>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
