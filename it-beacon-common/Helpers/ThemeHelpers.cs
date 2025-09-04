@@ -54,7 +54,7 @@ namespace it_beacon_common.Helpers
             {
                 resources["PopupBackgroundBrush"] = new SolidColorBrush(Colors.White);
                 resources["PopupForegroundBrush"] = new SolidColorBrush(Colors.Black);
-                resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(220, 220, 220));
+                resources["PopupBorderBrush"] = new SolidColorBrush(Color.FromRgb(64, 64, 64));
                 // Added a new brush for the footer row in light mode
                 resources["FooterBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(245, 245, 245));
             }
