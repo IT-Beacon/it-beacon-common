@@ -153,16 +153,30 @@
     <!-- ============================= -->
 
     <!-- Style for the ContextMenu container -->
-    <Style TargetType="ContextMenu">
-        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="{DynamicResource PopupForegroundBrush}" />
-        <Setter Property="Padding" Value="2"/>
+    <Style TargetType="{x:Type ContextMenu}">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
+        <Setter Property="HasDropShadow" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ContextMenu}">
+                    <Border x:Name="Border"
+                            Background="{DynamicResource PopupBackgroundBrush}"
+                            BorderBrush="{DynamicResource PopupBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <StackPanel IsItemsHost="True"
+                                    KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Style for the individual MenuItems -->
     <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource PopupForegroundBrush}"/>
         <Setter Property="Padding" Value="8,6"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -170,10 +184,10 @@
                     <Border x:Name="border"
                             Background="Transparent"
                             Padding="{TemplateBinding Padding}">
-                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+                        <ContentPresenter ContentSource="Header"
+                                          RecognizesAccessKey="True"/>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!-- Hover effect to match other controls -->
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                             <Setter Property="Foreground" Value="White"/>
