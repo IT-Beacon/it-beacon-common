@@ -22,4 +22,13 @@
 		<None Include="Config\**\*" Pack="true" PackagePath="config\" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="Config\**\*">
+			<Pack>true</Pack>
+			<PackagePath>contentFiles\any\any\Config\</PackagePath>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
 </Project>
