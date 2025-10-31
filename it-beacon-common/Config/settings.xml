@@ -1,1 +1,51 @@
-﻿<?xml version="1.0" encoding="utf-8" ?> 
+﻿<Settings>
+	<Application>
+		<Name>IT Beacon</Name>
+		<Version>1.0.0</Version>
+	</Application>
+
+	<SnipeIT>
+		<ApiUrl>https://inventory.cvad.unt.edu/api/v1/hardware/byserial</ApiUrl>
+		<!-- 
+      The API Key is now read from here. 
+      The hardcoded key in App.xaml.cs should be removed.
+    -->
+		<ApiKey>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZmNkMTk1OGEwZDc1MTNjNTEzZWQ0NThlZTk5OWE5NmVhYjgwM2U4MTEzNGY4MWE3ZmM1ZGI1MjhiODMzNDE2YWQ4YzA5ODVkYTgyNGM0OTQiLCJpYXQiOjE3NTczNjQzMDAuNzU4NzU1LCJuYmYiOjE3NTczNjQzMDAuNzU4NzU4LCJleHAiOjIzODg1MTYzMDAuNzQwNTQyLCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.MYtoUjhKXH4k73NqHmtbs657nt06B6bweIceKzQCWDzcWDDsbnkACwDSzYPpw6HLuyTQPjv8bsNS82nlO4GsIPt2mqJZR4MLWv8bwEMFzxuyAqJg5uwZFOPVZO0wEFjidI5Gg_n8ke4V8EztqTEh8wQbM8d2qvqjiBtF9auItfYNjWLthWXYLdTXsfeH6bCvQ3Oh5NsPdrNlkGq7iN2DF1kKWGrVVCKq1hfYEv0fTqybRrPAVpzIhkI0fVAKkAlVpR2_7BWr6kLDzuhi3iztSyIaEthFpgITSpqMFz3NYaGuVloQvl-D5I4a8sD70PPmj7R0RjjV74FLHDmk7O2AEY-ze4AtMxEes3Wh9DFuf6Jzsb4jNIYjw7CvPBLBy34ClhD9XKXL4xEbetlMq9znQOfzuj6i70Gbp0KAm7BTWkfaLurNPDjWbZIejH1-trLhKwih1VxlVq7kl52M-mH0HqI-oW22GNxQUyvPYwPKoO3sl0B71W4ho5illHQFDtGlbxfGJ11RG6SrMrLwVLih_wmjWIPSBdok4aknA4Tu9nI2Ux3qJbKTcoArgRZVcg7Mof0gqdxteM7tv5jDu_XhAmHn3Oq1RmTb848w4iqlXeT1sZ4dUXUYL-vaaalMMEhp4yY0tUaqqfKlXIFeLD1TQoimgoLUTBzq3eM9pRLKQbM</ApiKey>
+	</SnipeIT>
+
+	<!-- 
+    NEW: Configuration for the main popup window.
+    Controls visibility of different info panels.
+  -->
+	<PopupWindow>
+		<ShowNetworkInfo>true</ShowNetworkInfo>
+		<ShowRiskScore>true</ShowRiskScore>
+		<ShowUptime>true</ShowUptime>
+		<ShowLocation>true</ShowLocation>
+	</PopupWindow>
+
+	<!-- 
+    NEW: Configuration for the quick shortcut buttons.
+    Add as many <Shortcut> blocks as you want (up to 3 recommended).
+    Glyph values are from the Segoe Fluent Icons font.
+    You can find glyph codes here: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font
+  -->
+	<QuickShortcuts>
+		<Shortcut>
+			<Glyph>&#xE8F2;</Glyph>
+			<ToolTip>Chat with Support</ToolTip>
+			<Url>https://unt-cvad.github.io/link/cvad-chat</Url>
+		</Shortcut>
+		<Shortcut>
+			<Glyph>&#xF0E3;</Glyph>
+			<ToolTip>Open Support Ticket</ToolTip>
+			<Url>https://unt-cvad.github.io/link/cvad-sharepoint</Url>
+		</Shortcut>
+		<Shortcut>
+			<Glyph>&#xE770;</Glyph>
+			<ToolTip>CVAD IT Homepage</ToolTip>
+			<Url>https://itservices.cvad.unt.edu</Url>
+		</Shortcut>
+	</QuickShortcuts>
+
+</Settings>

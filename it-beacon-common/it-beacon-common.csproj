@@ -22,4 +22,8 @@
 		<None Include="Config\**\*" Pack="true" PackagePath="config\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Remove="Config\ConfigManager.cs" />
+	</ItemGroup>
+
 </Project>
