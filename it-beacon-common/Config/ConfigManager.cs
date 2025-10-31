@@ -16,6 +16,19 @@ namespace it_beacon_common.Config
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
 
+    // --- NEW PUBLIC CLASS ---
+    /// <summary>
+    /// A simple class to represent a key-value pair for the settings window.
+    /// </summary>
+    public class SettingItem
+    {
+        public string Category { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+    // --- END OF NEW ---
+
+
     /// <summary>
     /// Static class to load and access settings from Config/settings.xml.
     /// </summary>
@@ -53,27 +66,87 @@ namespace it_beacon_common.Config
             }
         }
 
+        // --- NEW PUBLIC METHOD ---
         /// <summary>
-        /// Gets a string value from the config file.
+        /// Reads the entire loaded XML config and flattens it into a list for display.
         /// </summary>
-        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/Application/Name").</param>
-        /// <param name="defaultValue">The value to return if the key is not found.</param>
-        /// <returns>The setting value or the default value.</returns>
-        public static string GetString(string xPath, string defaultValue = "")
+        /// <returns>A list of SettingItem objects.</returns>
+        public static List<SettingItem> GetAllSettings()
         {
-            if (!_isLoaded || _config == null) return defaultValue;
+            var settings = new List<SettingItem>();
+            if (!_isLoaded || _config == null)
+            {
+                settings.Add(new SettingItem { Category = "Error", Key = "ConfigManager", Value = "Config file not found or not loaded." });
+                settings.Add(new SettingItem { Category = "Error", Key = "Expected Path", Value = _configFilePath });
+                return settings;
+            }
 
             try
             {
-                var node = _config.SelectSingleNode(xPath);
-                return node?.InnerText ?? defaultValue;
+                var root = _config.SelectSingleNode("/Settings");
+                if (root == null)
+                {
+                    settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = "Could not find /Settings root node." });
+                    return settings;
+                }
+
+                foreach (XmlNode categoryNode in root.ChildNodes)
+                {
+                    if (categoryNode.NodeType != XmlNodeType.Element) continue;
+
+                    if (categoryNode.Name == "QuickShortcuts")
+                    {
+                        int i = 1;
+                        foreach (XmlNode shortcutNode in categoryNode.SelectNodes("Shortcut"))
+                        {
+                            string categoryName = $"QuickShortcut {i++}";
+                            if (shortcutNode.ChildNodes != null)
+                            {
+                                foreach (XmlNode shortcutSetting in shortcutNode.ChildNodes)
+                                {
+                                    if (shortcutSetting.NodeType == XmlNodeType.Element)
+                                    {
+                                        settings.Add(new SettingItem
+                                        {
+                                            Category = categoryName,
+                                            Key = shortcutSetting.Name,
+                                            Value = shortcutSetting.InnerText
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (categoryNode.ChildNodes.Count > 0 && categoryNode.FirstChild.NodeType == XmlNodeType.Element)
+                    {
+                        // Node has child elements (e.g., SnipeIT, PopupWindow)
+                        foreach (XmlNode settingNode in categoryNode.ChildNodes)
+                        {
+                            if (settingNode.NodeType == XmlNodeType.Element)
+                            {
+                                // Special case to mask API key
+                                string val = (settingNode.Name.ToLower() == "apikey")
+                                             ? "****************"
+                                             : settingNode.InnerText;
+
+                                settings.Add(new SettingItem
+                                {
+                                    Category = categoryNode.Name,
+                                    Key = settingNode.Name,
+                                    Value = val
+                                });
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[ConfigManager] ERROR reading string from XPath '{xPath}': {ex.Message}");
-                return defaultValue;
+                settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = ex.Message });
             }
+            return settings;
         }
+        // --- END OF NEW ---
 
         /// <summary>
         /// Gets a boolean value from the config file.
@@ -124,4 +197,5 @@ namespace it_beacon_common.Config
         }
     }
 }
+
 
