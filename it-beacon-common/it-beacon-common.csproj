@@ -20,7 +20,7 @@
 		<Resource Include="Assets\Images\**\*" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup> 
 		<Content Include="Config\**\*">
 			<Pack>true</Pack>
 			<PackagePath>contentFiles\any\any\Config\</PackagePath>
