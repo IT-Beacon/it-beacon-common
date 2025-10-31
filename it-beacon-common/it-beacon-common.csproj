@@ -18,8 +18,6 @@
 	<ItemGroup>
 		<Resource Include="Assets\Icons\**\*" />
 		<Resource Include="Assets\Images\**\*" />
-
-		<None Include="Config\**\*" Pack="true" PackagePath="config\" />
 	</ItemGroup>
 
 	<ItemGroup>
