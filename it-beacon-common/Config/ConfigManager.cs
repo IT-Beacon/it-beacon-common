@@ -66,87 +66,27 @@ namespace it_beacon_common.Config
             }
         }
 
-        // --- NEW PUBLIC METHOD ---
         /// <summary>
-        /// Reads the entire loaded XML config and flattens it into a list for display.
+        /// Gets a string value from the config file.
         /// </summary>
-        /// <returns>A list of SettingItem objects.</returns>
-        public static List<SettingItem> GetAllSettings()
+        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/Application/Name").</param>
+        /// <param name="defaultValue">The value to return if the key is not found.</param>
+        /// <returns>The setting value or the default value.</returns>
+        public static string GetString(string xPath, string defaultValue = "")
         {
-            var settings = new List<SettingItem>();
-            if (!_isLoaded || _config == null)
-            {
-                settings.Add(new SettingItem { Category = "Error", Key = "ConfigManager", Value = "Config file not found or not loaded." });
-                settings.Add(new SettingItem { Category = "Error", Key = "Expected Path", Value = _configFilePath });
-                return settings;
-            }
+            if (!_isLoaded || _config == null) return defaultValue;
 
             try
             {
-                var root = _config.SelectSingleNode("/Settings");
-                if (root == null)
-                {
-                    settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = "Could not find /Settings root node." });
-                    return settings;
-                }
-
-                foreach (XmlNode categoryNode in root.ChildNodes)
-                {
-                    if (categoryNode.NodeType != XmlNodeType.Element) continue;
-
-                    if (categoryNode.Name == "QuickShortcuts")
-                    {
-                        int i = 1;
-                        foreach (XmlNode shortcutNode in categoryNode.SelectNodes("Shortcut"))
-                        {
-                            string categoryName = $"QuickShortcut {i++}";
-                            if (shortcutNode.ChildNodes != null)
-                            {
-                                foreach (XmlNode shortcutSetting in shortcutNode.ChildNodes)
-                                {
-                                    if (shortcutSetting.NodeType == XmlNodeType.Element)
-                                    {
-                                        settings.Add(new SettingItem
-                                        {
-                                            Category = categoryName,
-                                            Key = shortcutSetting.Name,
-                                            Value = shortcutSetting.InnerText
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (categoryNode.ChildNodes.Count > 0 && categoryNode.FirstChild.NodeType == XmlNodeType.Element)
-                    {
-                        // Node has child elements (e.g., SnipeIT, PopupWindow)
-                        foreach (XmlNode settingNode in categoryNode.ChildNodes)
-                        {
-                            if (settingNode.NodeType == XmlNodeType.Element)
-                            {
-                                // Special case to mask API key
-                                string val = (settingNode.Name.ToLower() == "apikey")
-                                             ? "****************"
-                                             : settingNode.InnerText;
-
-                                settings.Add(new SettingItem
-                                {
-                                    Category = categoryNode.Name,
-                                    Key = settingNode.Name,
-                                    Value = val
-                                });
-                            }
-                        }
-                    }
-                }
+                var node = _config.SelectSingleNode(xPath);
+                return node?.InnerText ?? defaultValue;
             }
             catch (Exception ex)
             {
-                settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = ex.Message });
+                Debug.WriteLine($"[ConfigManager] ERROR reading string from XPath '{xPath}': {ex.Message}");
+                return defaultValue;
             }
-            return settings;
         }
-        // --- END OF NEW ---
 
         /// <summary>
         /// Gets a boolean value from the config file.
@@ -195,7 +135,100 @@ namespace it_beacon_common.Config
 
             return shortcuts;
         }
+
+
+        // --- NEW PUBLIC METHOD ---
+        /// <summary>
+        /// Reads the entire loaded XML config and flattens it into a list for display.
+        /// </summary>
+        /// <returns>A list of SettingItem objects.</returns>
+        public static List<SettingItem> GetAllSettings()
+        {
+            var settings = new List<SettingItem>();
+            if (!_isLoaded || _config == null)
+            {
+                settings.Add(new SettingItem { Category = "Error", Key = "ConfigManager", Value = "Config file not found or not loaded." });
+                settings.Add(new SettingItem { Category = "Error", Key = "Expected Path", Value = _configFilePath });
+                return settings;
+            }
+
+            try
+            {
+                var root = _config.SelectSingleNode("/Settings");
+                if (root == null)
+                {
+                    settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = "Could not find /Settings root node." });
+                    return settings;
+                }
+
+                // --- FIX for L120 warning ---
+                // Add a null check on ChildNodes before iterating
+                if (root.ChildNodes == null)
+                {
+                    settings.Add(new SettingItem { Category = "Info", Key = "Parsing", Value = "Settings file is empty." });
+                    return settings;
+                }
+                // --- END FIX ---
+
+                foreach (XmlNode categoryNode in root.ChildNodes)
+                {
+                    if (categoryNode.NodeType != XmlNodeType.Element) continue;
+
+                    if (categoryNode.Name == "QuickShortcuts")
+                    {
+                        int i = 1;
+                        var shortcutNodes = categoryNode.SelectNodes("Shortcut");
+                        if (shortcutNodes != null)
+                        {
+                            foreach (XmlNode shortcutNode in shortcutNodes)
+                            {
+                                string categoryName = $"QuickShortcut {i++}";
+                                if (shortcutNode.ChildNodes != null)
+                                {
+                                    foreach (XmlNode shortcutSetting in shortcutNode.ChildNodes)
+                                    {
+                                        if (shortcutSetting.NodeType == XmlNodeType.Element)
+                                        {
+                                            settings.Add(new SettingItem
+                                            {
+                                                Category = categoryName,
+                                                Key = shortcutSetting.Name,
+                                                Value = shortcutSetting.InnerText
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (categoryNode.ChildNodes.Count > 0 && categoryNode.FirstChild?.NodeType == XmlNodeType.Element)
+                    {
+                        // Node has child elements (e.g., SnipeIT, PopupWindow)
+                        foreach (XmlNode settingNode in categoryNode.ChildNodes)
+                        {
+                            if (settingNode.NodeType == XmlNodeType.Element)
+                            {
+                                // Special case to mask API key
+                                string val = (settingNode.Name.ToLower() == "apikey")
+                                             ? "****************"
+                                             : settingNode.InnerText; // This is correct, not GetString()
+
+                                settings.Add(new SettingItem
+                                {
+                                    Category = categoryNode.Name,
+                                    Key = settingNode.Name,
+                                    Value = val
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = ex.Message });
+            }
+            return settings;
+        }
     }
 }
-
-
