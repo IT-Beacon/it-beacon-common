@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Diagnostics;
-using System.ComponentModel; // Required for INotifyPropertyChanged
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Linq;
 
 namespace it_beacon_common.Config
 {
-    /// <summary>
-    /// Represents a single QuickShortcut button configuration.
-    /// </summary>
+    // ... QuickShortcut class remains unchanged ...
     public class QuickShortcut
     {
-        public string Glyph { get; set; } = "&#xE713;"; // Default glyph (settings)
+        public string Glyph { get; set; } = "&#xE713;";
         public string ToolTip { get; set; } = "Default Tooltip";
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
+
 
     // --- MODIFIED PUBLIC CLASS ---
     /// <summary>
@@ -31,6 +30,12 @@ namespace it_beacon_common.Config
 
         public string Category { get; set; } = string.Empty;
         public string Key { get; set; } = string.Empty;
+
+        /// <summary>
+        /// A hint for the UI on how to render this setting.
+        /// (e.g., "string", "bool", "glyph")
+        /// </summary>
+        public string DisplayType { get; set; } = "string";
 
         public string Value
         {
@@ -46,19 +51,10 @@ namespace it_beacon_common.Config
             }
         }
 
-        /// <summary>
-        /// Gets or sets whether this setting can be edited in the UI.
-        /// </summary>
+        // ... Other SettingItem properties (IsReadOnly, IsDirty, etc.) remain unchanged ...
         public bool IsReadOnly { get; set; } = false;
-
-        /// <summary>
-        /// True if the Value has been changed from its original loaded value.
-        /// </summary>
         public bool IsDirty { get; private set; } = false;
 
-        /// <summary>
-        /// Stores the original value when the item is created.
-        /// </summary>
         public void SetOriginalValue(string value)
         {
             _value = value;
@@ -66,18 +62,12 @@ namespace it_beacon_common.Config
             IsDirty = false;
         }
 
-        /// <summary>
-        /// Marks the current value as "saved" and resets the dirty flag.
-        /// </summary>
         public void AcceptChanges()
         {
             _originalValue = _value;
             IsDirty = false;
         }
 
-        /// <summary>
-        /// Reverts the value back to what it was when loaded.
-        /// </summary>
         public void RevertChanges()
         {
             Value = _originalValue;
@@ -93,19 +83,14 @@ namespace it_beacon_common.Config
     // --- END OF MODIFIED ---
 
 
-    /// <summary>
-    /// Static class to load and access settings from Config/settings.xml.
-    /// </summary>
     public static class ConfigManager
     {
+        // ... LoadConfig, GetString, GetBool, GetQuickShortcuts, _config, etc. remain unchanged ...
         private static XmlDocument? _config;
         private static bool _isLoaded = false;
         private static readonly string _configFilePath = Path.Combine(AppContext.BaseDirectory, "Config", "settings.xml");
-        private static readonly object _configLock = new object(); // For thread safety on save
+        private static readonly object _configLock = new object();
 
-        /// <summary>
-        /// Loads the settings.xml file. Must be called once on startup.
-        /// </summary>
         public static void LoadConfig()
         {
             if (_isLoaded) return;
@@ -127,11 +112,10 @@ namespace it_beacon_common.Config
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ConfigManager] ERROR: Failed to load config file: {ex.Message}");
-                _config = null; // Ensure config is null on failure
+                _config = null;
             }
         }
 
-        // ... GetString, GetBool, GetQuickShortcuts methods remain unchanged ...
         public static string GetString(string xPath, string defaultValue = "")
         {
             if (!_isLoaded || _config == null) return defaultValue;
@@ -186,6 +170,7 @@ namespace it_beacon_common.Config
             return shortcuts;
         }
 
+
         // --- MODIFIED PUBLIC METHOD ---
         /// <summary>
         /// Reads the entire loaded XML config and flattens it into a list for display.
@@ -239,7 +224,9 @@ namespace it_beacon_common.Config
                                             {
                                                 Category = categoryName,
                                                 Key = shortcutSetting.Name,
-                                                IsReadOnly = false
+                                                IsReadOnly = false,
+                                                // NEW: Set DisplayType for glyphs
+                                                DisplayType = (shortcutSetting.Name == "Glyph") ? "glyph" : "string"
                                             }.Also(s => s.SetOriginalValue(shortcutSetting.InnerText)));
                                         }
                                     }
@@ -257,11 +244,19 @@ namespace it_beacon_common.Config
                                 bool isApiKey = settingNode.Name.ToLower() == "apikey";
                                 string val = isApiKey ? "****************" : settingNode.InnerText;
 
+                                // NEW: Determine DisplayType
+                                string displayType = "string";
+                                if (bool.TryParse(val, out _))
+                                {
+                                    displayType = "bool";
+                                }
+
                                 settings.Add(new SettingItem
                                 {
                                     Category = categoryNode.Name,
                                     Key = settingNode.Name,
-                                    IsReadOnly = isApiKey // Make API key read-only
+                                    IsReadOnly = isApiKey,
+                                    DisplayType = displayType // Set the new property
                                 }.Also(s => s.SetOriginalValue(val)));
                             }
                         }
@@ -275,11 +270,7 @@ namespace it_beacon_common.Config
             return settings;
         }
 
-        // --- NEW PUBLIC METHOD ---
-        /// <summary>
-        /// Saves all changed settings back to the settings.xml file.
-        /// </summary>
-        /// <param name="settings">The complete list of SettingItem objects from the window.</param>
+        // ... SaveAllSettings method remains unchanged ...
         public static bool SaveAllSettings(IEnumerable<SettingItem> settings)
         {
             if (_config == null) return false;
@@ -317,7 +308,15 @@ namespace it_beacon_common.Config
                         // Update the node's value if it was found
                         if (targetNode != null)
                         {
-                            targetNode.InnerText = item.Value;
+                            // NEW: Ensure boolean values are lowercase "true"/"false" for consistency
+                            if (item.DisplayType == "bool")
+                            {
+                                targetNode.InnerText = item.Value.ToLower();
+                            }
+                            else
+                            {
+                                targetNode.InnerText = item.Value;
+                            }
                         }
                         else
                         {
@@ -346,7 +345,7 @@ namespace it_beacon_common.Config
         }
     }
 
-    // Helper extension to allow setting properties on creation
+    // ... ObjectExtensions helper class remains unchanged ...
     internal static class ObjectExtensions
     {
         public static T Also<T>(this T obj, Action<T> action)
