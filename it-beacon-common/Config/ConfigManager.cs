@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Diagnostics;
-using System.ComponentModel; // Required for INotifyPropertyChanged
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Linq;
 
@@ -14,15 +14,13 @@ namespace it_beacon_common.Config
     /// </summary>
     public class QuickShortcut
     {
-        public string Glyph { get; set; } = "&#xE713;"; // Default glyph (settings)
+        public string Glyph { get; set; } = "&#xE713;"; // This property will hold the *full* string (e.g., &#xE713;)
         public string ToolTip { get; set; } = "Default Tooltip";
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
 
-    // --- MODIFIED PUBLIC CLASS ---
     /// <summary>
     /// A class to represent a key-value pair for the settings window.
-    /// Now supports INotifyPropertyChanged for two-way data binding and editing.
     /// </summary>
     public class SettingItem : INotifyPropertyChanged
     {
@@ -38,6 +36,7 @@ namespace it_beacon_common.Config
         /// </summary>
         public string DisplayType { get; set; } = "string";
 
+        // This property will hold the *raw* string (e.g., E8F2)
         public string Value
         {
             get => _value;
@@ -52,19 +51,9 @@ namespace it_beacon_common.Config
             }
         }
 
-        /// <summary>
-        /// Gets or sets whether this setting can be edited in the UI.
-        /// </summary>
         public bool IsReadOnly { get; set; } = false;
-
-        /// <summary>
-        /// True if the Value has been changed from its original loaded value.
-        /// </summary>
         public bool IsDirty { get; private set; } = false;
 
-        /// <summary>
-        /// Stores the original value when the item is created.
-        /// </summary>
         public void SetOriginalValue(string value)
         {
             _value = value;
@@ -72,18 +61,12 @@ namespace it_beacon_common.Config
             IsDirty = false;
         }
 
-        /// <summary>
-        /// Marks the current value as "saved" and resets the dirty flag.
-        /// </summary>
         public void AcceptChanges()
         {
             _originalValue = _value;
             IsDirty = false;
         }
 
-        /// <summary>
-        /// Reverts the value back to what it was when loaded.
-        /// </summary>
         public void RevertChanges()
         {
             Value = _originalValue;
@@ -96,7 +79,6 @@ namespace it_beacon_common.Config
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
-    // --- END OF MODIFIED ---
 
 
     /// <summary>
@@ -107,11 +89,10 @@ namespace it_beacon_common.Config
         private static XmlDocument? _config;
         private static bool _isLoaded = false;
         private static readonly string _configFilePath = Path.Combine(AppContext.BaseDirectory, "Config", "settings.xml");
-        private static readonly object _configLock = new object(); // For thread safety on save
+        private static readonly object _configLock = new object();
 
-        /// <summary>
-        /// Loads the settings.xml file. Must be called once on startup.
-        /// </summary>
+        // ... LoadConfig, GetString, GetBool ... remain unchanged ...
+        #region Standard Load/Get Methods
         public static void LoadConfig()
         {
             if (_isLoaded) return;
@@ -133,16 +114,10 @@ namespace it_beacon_common.Config
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ConfigManager] ERROR: Failed to load config file: {ex.Message}");
-                _config = null; // Ensure config is null on failure
+                _config = null;
             }
         }
 
-        /// <summary>
-        /// Gets a string value from the config file.
-        /// </summary>
-        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/Application/Name").</param>
-        /// <param name="defaultValue">The value to return if the key is not found.</param>
-        /// <returns>The setting value or the default value.</returns>
         public static string GetString(string xPath, string defaultValue = "")
         {
             if (!_isLoaded || _config == null) return defaultValue;
@@ -159,12 +134,6 @@ namespace it_beacon_common.Config
             }
         }
 
-        /// <summary>
-        /// Gets a boolean value from the config file.
-        /// </summary>
-        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/PopupWindow/ShowNetworkInfo").</param>
-        /// <param name="defaultValue">The value to return if the key is not found.</param>
-        /// <returns>The setting value or the default value.</returns>
         public static bool GetBool(string xPath, bool defaultValue = false)
         {
             string val = GetString(xPath, defaultValue.ToString());
@@ -174,11 +143,14 @@ namespace it_beacon_common.Config
             }
             return defaultValue;
         }
+        #endregion
 
+        // --- MODIFIED ---
         /// <summary>
         /// Gets the list of configured quick shortcuts.
+        /// This method reads the raw hex (e.g., E8F2) and formats it
+        /// into the full string (e.g., &#xE8F2;) for the popup UI to consume.
         /// </summary>
-        /// <returns>A list of QuickShortcut objects.</returns>
         public static List<QuickShortcut> GetQuickShortcuts()
         {
             var shortcuts = new List<QuickShortcut>();
@@ -191,9 +163,12 @@ namespace it_beacon_common.Config
 
                 foreach (XmlNode node in nodes)
                 {
+                    // --- FIX: Read InnerText (raw hex) and add the prefix/suffix ---
+                    string rawGlyph = node["Glyph"]?.InnerText ?? "E713";
+
                     shortcuts.Add(new QuickShortcut
                     {
-                        Glyph = node["Glyph"]?.InnerText ?? "&#xE713;",
+                        Glyph = $"&#x{rawGlyph};", // Transform to the full UI string
                         ToolTip = node["ToolTip"]?.InnerText ?? "Link",
                         Url = node["Url"]?.InnerText ?? ""
                     });
@@ -208,11 +183,11 @@ namespace it_beacon_common.Config
         }
 
 
-        // --- MODIFIED PUBLIC METHOD ---
+        // --- MODIFIED ---
         /// <summary>
-        /// Reads the entire loaded XML config and flattens it into a list for display.
+        /// Reads the entire loaded XML config and flattens it into a list for display
+        /// in the Settings Window. This method uses the raw, un-formatted values.
         /// </summary>
-        /// <returns>A list of SettingItem objects.</returns>
         public static List<SettingItem> GetAllSettings()
         {
             var settings = new List<SettingItem>();
@@ -232,14 +207,11 @@ namespace it_beacon_common.Config
                     return settings;
                 }
 
-                // --- FIX for L120 warning ---
-                // Add a null check on ChildNodes before iterating
                 if (root.ChildNodes == null)
                 {
                     settings.Add(new SettingItem { Category = "Info", Key = "Parsing", Value = "Settings file is empty.", IsReadOnly = true });
                     return settings;
                 }
-                // --- END FIX ---
 
                 foreach (XmlNode categoryNode in root.ChildNodes)
                 {
@@ -260,14 +232,18 @@ namespace it_beacon_common.Config
                                     {
                                         if (shortcutSetting.NodeType == XmlNodeType.Element)
                                         {
+                                            bool isGlyph = shortcutSetting.Name == "Glyph";
+                                            // --- FIX: Always read InnerText (raw value) ---
+                                            string value = shortcutSetting.InnerText;
+
                                             settings.Add(new SettingItem
                                             {
                                                 Category = categoryName,
                                                 Key = shortcutSetting.Name,
                                                 IsReadOnly = false,
-                                                // NEW: Set DisplayType for glyphs
-                                                DisplayType = (shortcutSetting.Name == "Glyph") ? "glyph" : "string"
-                                            }.Also(s => s.SetOriginalValue(shortcutSetting.InnerText)));
+                                                // "glyph" tells the XAML to use a normal string box
+                                                DisplayType = isGlyph ? "glyph" : "string"
+                                            }.Also(s => s.SetOriginalValue(value)));
                                         }
                                     }
                                 }
@@ -284,9 +260,7 @@ namespace it_beacon_common.Config
                                 bool isApiKey = settingNode.Name.ToLower() == "apikey";
                                 string val = isApiKey ? "****************" : settingNode.InnerText;
 
-                                // NEW: Determine DisplayType
                                 string displayType = "string";
-                                // Use the original InnerText to check for bool, not the potentially masked 'val'
                                 if (bool.TryParse(settingNode.InnerText, out _))
                                 {
                                     displayType = "bool";
@@ -296,8 +270,8 @@ namespace it_beacon_common.Config
                                 {
                                     Category = categoryNode.Name,
                                     Key = settingNode.Name,
-                                    IsReadOnly = isApiKey, // Make API key read-only
-                                    DisplayType = displayType // Set the new property
+                                    IsReadOnly = isApiKey,
+                                    DisplayType = displayType
                                 }.Also(s => s.SetOriginalValue(val)));
                             }
                         }
@@ -311,20 +285,17 @@ namespace it_beacon_common.Config
             return settings;
         }
 
-        // --- NEW PUBLIC METHOD ---
+        // --- MODIFIED ---
         /// <summary>
         /// Saves all changed settings back to the settings.xml file.
+        /// It expects the raw, un-formatted values from the Settings Window.
         /// </summary>
-        /// <param name="settings">The complete list of SettingItem objects from the window.</param>
         public static bool SaveAllSettings(IEnumerable<SettingItem> settings)
         {
             if (_config == null) return false;
 
             var changedSettings = settings.Where(s => s.IsDirty && !s.IsReadOnly).ToList();
-
-            // --- THIS IS THE FIX ---
-            if (changedSettings.Count == 0) return true; // Nothing to save (was 'F')
-            // --- END OF FIX ---
+            if (changedSettings.Count == 0) return true; // Nothing to save
 
             lock (_configLock)
             {
@@ -336,7 +307,6 @@ namespace it_beacon_common.Config
 
                         if (item.Category.StartsWith("QuickShortcut"))
                         {
-                            // Handle QuickShortcut special case
                             if (int.TryParse(item.Category.Split(' ').LastOrDefault(), out int index))
                             {
                                 var shortcutNodes = _config.SelectNodes("/Settings/QuickShortcuts/Shortcut");
@@ -348,15 +318,16 @@ namespace it_beacon_common.Config
                         }
                         else
                         {
-                            // Handle standard category/key path
                             string xPath = $"/Settings/{item.Category}/{item.Key}";
                             targetNode = _config.SelectSingleNode(xPath);
                         }
 
-                        // Update the node's value if it was found
                         if (targetNode != null)
                         {
-                            // NEW: Ensure boolean values are lowercase "true"/"false" for consistency
+                            // --- FIX: Always save the raw value using InnerText ---
+                            // This is safe for "glyph" because "E8F2" has no special characters.
+                            // This is correct for "bool" ("true"/"false").
+                            // This is correct for "string".
                             if (item.DisplayType == "bool")
                             {
                                 targetNode.InnerText = item.Value.ToLower();
@@ -372,10 +343,8 @@ namespace it_beacon_common.Config
                         }
                     }
 
-                    // Save the entire document back to the file
                     _config.Save(_configFilePath);
 
-                    // Mark all saved items as "clean"
                     foreach (var item in changedSettings)
                     {
                         item.AcceptChanges();
@@ -393,7 +362,7 @@ namespace it_beacon_common.Config
         }
     }
 
-    // Helper extension to allow setting properties on creation
+    // Helper extension (unchanged)
     internal static class ObjectExtensions
     {
         public static T Also<T>(this T obj, Action<T> action)
