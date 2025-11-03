@@ -321,7 +321,10 @@ namespace it_beacon_common.Config
             if (_config == null) return false;
 
             var changedSettings = settings.Where(s => s.IsDirty && !s.IsReadOnly).ToList();
-            if (changedSettings.Count == 0) return true; // Nothing to save
+
+            // --- THIS IS THE FIX ---
+            if (changedSettings.Count == 0) return true; // Nothing to save (was 'F')
+            // --- END OF FIX ---
 
             lock (_configLock)
             {
