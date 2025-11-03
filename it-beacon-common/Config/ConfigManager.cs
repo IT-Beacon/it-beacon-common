@@ -370,7 +370,7 @@ namespace it_beacon_common.Config
                     return false;
                 }
             }
-        }
+        } 
     }
 
     // Helper extension (unchanged)
