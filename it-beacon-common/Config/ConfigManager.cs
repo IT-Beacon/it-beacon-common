@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Diagnostics;
-using System.ComponentModel;
+using System.ComponentModel; // Required for INotifyPropertyChanged
 using System.Runtime.CompilerServices;
 using System.Linq;
 
 namespace it_beacon_common.Config
 {
-    // ... QuickShortcut class remains unchanged ...
+    /// <summary>
+    /// Represents a single QuickShortcut button configuration.
+    /// </summary>
     public class QuickShortcut
     {
-        public string Glyph { get; set; } = "&#xE713;";
+        public string Glyph { get; set; } = "&#xE713;"; // Default glyph (settings)
         public string ToolTip { get; set; } = "Default Tooltip";
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
-
 
     // --- MODIFIED PUBLIC CLASS ---
     /// <summary>
@@ -51,10 +52,19 @@ namespace it_beacon_common.Config
             }
         }
 
-        // ... Other SettingItem properties (IsReadOnly, IsDirty, etc.) remain unchanged ...
+        /// <summary>
+        /// Gets or sets whether this setting can be edited in the UI.
+        /// </summary>
         public bool IsReadOnly { get; set; } = false;
+
+        /// <summary>
+        /// True if the Value has been changed from its original loaded value.
+        /// </summary>
         public bool IsDirty { get; private set; } = false;
 
+        /// <summary>
+        /// Stores the original value when the item is created.
+        /// </summary>
         public void SetOriginalValue(string value)
         {
             _value = value;
@@ -62,12 +72,18 @@ namespace it_beacon_common.Config
             IsDirty = false;
         }
 
+        /// <summary>
+        /// Marks the current value as "saved" and resets the dirty flag.
+        /// </summary>
         public void AcceptChanges()
         {
             _originalValue = _value;
             IsDirty = false;
         }
 
+        /// <summary>
+        /// Reverts the value back to what it was when loaded.
+        /// </summary>
         public void RevertChanges()
         {
             Value = _originalValue;
@@ -83,14 +99,19 @@ namespace it_beacon_common.Config
     // --- END OF MODIFIED ---
 
 
+    /// <summary>
+    /// Static class to load and access settings from Config/settings.xml.
+    /// </summary>
     public static class ConfigManager
     {
-        // ... LoadConfig, GetString, GetBool, GetQuickShortcuts, _config, etc. remain unchanged ...
         private static XmlDocument? _config;
         private static bool _isLoaded = false;
         private static readonly string _configFilePath = Path.Combine(AppContext.BaseDirectory, "Config", "settings.xml");
-        private static readonly object _configLock = new object();
+        private static readonly object _configLock = new object(); // For thread safety on save
 
+        /// <summary>
+        /// Loads the settings.xml file. Must be called once on startup.
+        /// </summary>
         public static void LoadConfig()
         {
             if (_isLoaded) return;
@@ -112,10 +133,16 @@ namespace it_beacon_common.Config
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ConfigManager] ERROR: Failed to load config file: {ex.Message}");
-                _config = null;
+                _config = null; // Ensure config is null on failure
             }
         }
 
+        /// <summary>
+        /// Gets a string value from the config file.
+        /// </summary>
+        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/Application/Name").</param>
+        /// <param name="defaultValue">The value to return if the key is not found.</param>
+        /// <returns>The setting value or the default value.</returns>
         public static string GetString(string xPath, string defaultValue = "")
         {
             if (!_isLoaded || _config == null) return defaultValue;
@@ -132,6 +159,12 @@ namespace it_beacon_common.Config
             }
         }
 
+        /// <summary>
+        /// Gets a boolean value from the config file.
+        /// </summary>
+        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/PopupWindow/ShowNetworkInfo").</param>
+        /// <param name="defaultValue">The value to return if the key is not found.</param>
+        /// <returns>The setting value or the default value.</returns>
         public static bool GetBool(string xPath, bool defaultValue = false)
         {
             string val = GetString(xPath, defaultValue.ToString());
@@ -142,6 +175,10 @@ namespace it_beacon_common.Config
             return defaultValue;
         }
 
+        /// <summary>
+        /// Gets the list of configured quick shortcuts.
+        /// </summary>
+        /// <returns>A list of QuickShortcut objects.</returns>
         public static List<QuickShortcut> GetQuickShortcuts()
         {
             var shortcuts = new List<QuickShortcut>();
@@ -195,11 +232,14 @@ namespace it_beacon_common.Config
                     return settings;
                 }
 
+                // --- FIX for L120 warning ---
+                // Add a null check on ChildNodes before iterating
                 if (root.ChildNodes == null)
                 {
                     settings.Add(new SettingItem { Category = "Info", Key = "Parsing", Value = "Settings file is empty.", IsReadOnly = true });
                     return settings;
                 }
+                // --- END FIX ---
 
                 foreach (XmlNode categoryNode in root.ChildNodes)
                 {
@@ -246,7 +286,8 @@ namespace it_beacon_common.Config
 
                                 // NEW: Determine DisplayType
                                 string displayType = "string";
-                                if (bool.TryParse(val, out _))
+                                // Use the original InnerText to check for bool, not the potentially masked 'val'
+                                if (bool.TryParse(settingNode.InnerText, out _))
                                 {
                                     displayType = "bool";
                                 }
@@ -255,7 +296,7 @@ namespace it_beacon_common.Config
                                 {
                                     Category = categoryNode.Name,
                                     Key = settingNode.Name,
-                                    IsReadOnly = isApiKey,
+                                    IsReadOnly = isApiKey, // Make API key read-only
                                     DisplayType = displayType // Set the new property
                                 }.Also(s => s.SetOriginalValue(val)));
                             }
@@ -270,13 +311,17 @@ namespace it_beacon_common.Config
             return settings;
         }
 
-        // ... SaveAllSettings method remains unchanged ...
+        // --- NEW PUBLIC METHOD ---
+        /// <summary>
+        /// Saves all changed settings back to the settings.xml file.
+        /// </summary>
+        /// <param name="settings">The complete list of SettingItem objects from the window.</param>
         public static bool SaveAllSettings(IEnumerable<SettingItem> settings)
         {
             if (_config == null) return false;
 
             var changedSettings = settings.Where(s => s.IsDirty && !s.IsReadOnly).ToList();
-            if (changedSettings.Count == 0) return true; // Nothing to save
+            if (changedSettings.Count == F) return true; // Nothing to save
 
             lock (_configLock)
             {
@@ -345,7 +390,7 @@ namespace it_beacon_common.Config
         }
     }
 
-    // ... ObjectExtensions helper class remains unchanged ...
+    // Helper extension to allow setting properties on creation
     internal static class ObjectExtensions
     {
         public static T Also<T>(this T obj, Action<T> action)
