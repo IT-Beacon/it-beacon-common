@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Diagnostics;
+using System.ComponentModel; // Required for INotifyPropertyChanged
+using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace it_beacon_common.Config
 {
@@ -16,17 +19,78 @@ namespace it_beacon_common.Config
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
 
-    // --- NEW PUBLIC CLASS ---
+    // --- MODIFIED PUBLIC CLASS ---
     /// <summary>
-    /// A simple class to represent a key-value pair for the settings window.
+    /// A class to represent a key-value pair for the settings window.
+    /// Now supports INotifyPropertyChanged for two-way data binding and editing.
     /// </summary>
-    public class SettingItem
+    public class SettingItem : INotifyPropertyChanged
     {
+        private string _value = string.Empty;
+        private string _originalValue = string.Empty;
+
         public string Category { get; set; } = string.Empty;
         public string Key { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
+
+        public string Value
+        {
+            get => _value;
+            set
+            {
+                if (_value != value)
+                {
+                    _value = value;
+                    IsDirty = true;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether this setting can be edited in the UI.
+        /// </summary>
+        public bool IsReadOnly { get; set; } = false;
+
+        /// <summary>
+        /// True if the Value has been changed from its original loaded value.
+        /// </summary>
+        public bool IsDirty { get; private set; } = false;
+
+        /// <summary>
+        /// Stores the original value when the item is created.
+        /// </summary>
+        public void SetOriginalValue(string value)
+        {
+            _value = value;
+            _originalValue = value;
+            IsDirty = false;
+        }
+
+        /// <summary>
+        /// Marks the current value as "saved" and resets the dirty flag.
+        /// </summary>
+        public void AcceptChanges()
+        {
+            _originalValue = _value;
+            IsDirty = false;
+        }
+
+        /// <summary>
+        /// Reverts the value back to what it was when loaded.
+        /// </summary>
+        public void RevertChanges()
+        {
+            Value = _originalValue;
+            IsDirty = false;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
-    // --- END OF NEW ---
+    // --- END OF MODIFIED ---
 
 
     /// <summary>
@@ -37,6 +101,7 @@ namespace it_beacon_common.Config
         private static XmlDocument? _config;
         private static bool _isLoaded = false;
         private static readonly string _configFilePath = Path.Combine(AppContext.BaseDirectory, "Config", "settings.xml");
+        private static readonly object _configLock = new object(); // For thread safety on save
 
         /// <summary>
         /// Loads the settings.xml file. Must be called once on startup.
@@ -66,12 +131,7 @@ namespace it_beacon_common.Config
             }
         }
 
-        /// <summary>
-        /// Gets a string value from the config file.
-        /// </summary>
-        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/Application/Name").</param>
-        /// <param name="defaultValue">The value to return if the key is not found.</param>
-        /// <returns>The setting value or the default value.</returns>
+        // ... GetString, GetBool, GetQuickShortcuts methods remain unchanged ...
         public static string GetString(string xPath, string defaultValue = "")
         {
             if (!_isLoaded || _config == null) return defaultValue;
@@ -88,12 +148,6 @@ namespace it_beacon_common.Config
             }
         }
 
-        /// <summary>
-        /// Gets a boolean value from the config file.
-        /// </summary>
-        /// <param name="xPath">The XPath to the setting (e.g., "/Settings/PopupWindow/ShowNetworkInfo").</param>
-        /// <param name="defaultValue">The value to return if the key is not found.</param>
-        /// <returns>The setting value or the default value.</returns>
         public static bool GetBool(string xPath, bool defaultValue = false)
         {
             string val = GetString(xPath, defaultValue.ToString());
@@ -104,10 +158,6 @@ namespace it_beacon_common.Config
             return defaultValue;
         }
 
-        /// <summary>
-        /// Gets the list of configured quick shortcuts.
-        /// </summary>
-        /// <returns>A list of QuickShortcut objects.</returns>
         public static List<QuickShortcut> GetQuickShortcuts()
         {
             var shortcuts = new List<QuickShortcut>();
@@ -136,8 +186,7 @@ namespace it_beacon_common.Config
             return shortcuts;
         }
 
-
-        // --- NEW PUBLIC METHOD ---
+        // --- MODIFIED PUBLIC METHOD ---
         /// <summary>
         /// Reads the entire loaded XML config and flattens it into a list for display.
         /// </summary>
@@ -147,8 +196,8 @@ namespace it_beacon_common.Config
             var settings = new List<SettingItem>();
             if (!_isLoaded || _config == null)
             {
-                settings.Add(new SettingItem { Category = "Error", Key = "ConfigManager", Value = "Config file not found or not loaded." });
-                settings.Add(new SettingItem { Category = "Error", Key = "Expected Path", Value = _configFilePath });
+                settings.Add(new SettingItem { Category = "Error", Key = "ConfigManager", Value = "Config file not found or not loaded.", IsReadOnly = true });
+                settings.Add(new SettingItem { Category = "Error", Key = "Expected Path", Value = _configFilePath, IsReadOnly = true });
                 return settings;
             }
 
@@ -157,18 +206,15 @@ namespace it_beacon_common.Config
                 var root = _config.SelectSingleNode("/Settings");
                 if (root == null)
                 {
-                    settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = "Could not find /Settings root node." });
+                    settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = "Could not find /Settings root node.", IsReadOnly = true });
                     return settings;
                 }
 
-                // --- FIX for L120 warning ---
-                // Add a null check on ChildNodes before iterating
                 if (root.ChildNodes == null)
                 {
-                    settings.Add(new SettingItem { Category = "Info", Key = "Parsing", Value = "Settings file is empty." });
+                    settings.Add(new SettingItem { Category = "Info", Key = "Parsing", Value = "Settings file is empty.", IsReadOnly = true });
                     return settings;
                 }
-                // --- END FIX ---
 
                 foreach (XmlNode categoryNode in root.ChildNodes)
                 {
@@ -193,8 +239,8 @@ namespace it_beacon_common.Config
                                             {
                                                 Category = categoryName,
                                                 Key = shortcutSetting.Name,
-                                                Value = shortcutSetting.InnerText
-                                            });
+                                                IsReadOnly = false
+                                            }.Also(s => s.SetOriginalValue(shortcutSetting.InnerText)));
                                         }
                                     }
                                 }
@@ -208,17 +254,15 @@ namespace it_beacon_common.Config
                         {
                             if (settingNode.NodeType == XmlNodeType.Element)
                             {
-                                // Special case to mask API key
-                                string val = (settingNode.Name.ToLower() == "apikey")
-                                             ? "****************"
-                                             : settingNode.InnerText; // This is correct, not GetString()
+                                bool isApiKey = settingNode.Name.ToLower() == "apikey";
+                                string val = isApiKey ? "****************" : settingNode.InnerText;
 
                                 settings.Add(new SettingItem
                                 {
                                     Category = categoryNode.Name,
                                     Key = settingNode.Name,
-                                    Value = val
-                                });
+                                    IsReadOnly = isApiKey // Make API key read-only
+                                }.Also(s => s.SetOriginalValue(val)));
                             }
                         }
                     }
@@ -226,9 +270,89 @@ namespace it_beacon_common.Config
             }
             catch (Exception ex)
             {
-                settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = ex.Message });
+                settings.Add(new SettingItem { Category = "Error", Key = "Parsing", Value = ex.Message, IsReadOnly = true });
             }
             return settings;
+        }
+
+        // --- NEW PUBLIC METHOD ---
+        /// <summary>
+        /// Saves all changed settings back to the settings.xml file.
+        /// </summary>
+        /// <param name="settings">The complete list of SettingItem objects from the window.</param>
+        public static bool SaveAllSettings(IEnumerable<SettingItem> settings)
+        {
+            if (_config == null) return false;
+
+            var changedSettings = settings.Where(s => s.IsDirty && !s.IsReadOnly).ToList();
+            if (changedSettings.Count == 0) return true; // Nothing to save
+
+            lock (_configLock)
+            {
+                try
+                {
+                    foreach (var item in changedSettings)
+                    {
+                        XmlNode? targetNode = null;
+
+                        if (item.Category.StartsWith("QuickShortcut"))
+                        {
+                            // Handle QuickShortcut special case
+                            if (int.TryParse(item.Category.Split(' ').LastOrDefault(), out int index))
+                            {
+                                var shortcutNodes = _config.SelectNodes("/Settings/QuickShortcuts/Shortcut");
+                                if (shortcutNodes != null && index - 1 < shortcutNodes.Count)
+                                {
+                                    targetNode = shortcutNodes[index - 1]?.SelectSingleNode(item.Key);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Handle standard category/key path
+                            string xPath = $"/Settings/{item.Category}/{item.Key}";
+                            targetNode = _config.SelectSingleNode(xPath);
+                        }
+
+                        // Update the node's value if it was found
+                        if (targetNode != null)
+                        {
+                            targetNode.InnerText = item.Value;
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"[ConfigManager] WARNING: Could not find node to save for setting: {item.Category}/{item.Key}");
+                        }
+                    }
+
+                    // Save the entire document back to the file
+                    _config.Save(_configFilePath);
+
+                    // Mark all saved items as "clean"
+                    foreach (var item in changedSettings)
+                    {
+                        item.AcceptChanges();
+                    }
+
+                    Debug.WriteLine($"[ConfigManager] Successfully saved {changedSettings.Count} settings to: {_configFilePath}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[ConfigManager] ERROR: Failed to save config file: {ex.Message}");
+                    return false;
+                }
+            }
+        }
+    }
+
+    // Helper extension to allow setting properties on creation
+    internal static class ObjectExtensions
+    {
+        public static T Also<T>(this T obj, Action<T> action)
+        {
+            action(obj);
+            return obj;
         }
     }
 }
