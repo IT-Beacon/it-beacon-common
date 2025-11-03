@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using System.Globalization; // Needed for hex conversion
 
 namespace it_beacon_common.Config
 {
@@ -14,7 +15,7 @@ namespace it_beacon_common.Config
     /// </summary>
     public class QuickShortcut
     {
-        public string Glyph { get; set; } = "&#xE713;"; // This property will hold the *full* string (e.g., &#xE713;)
+        public string Glyph { get; set; } = "\uE713"; // Default glyph (settings icon)
         public string ToolTip { get; set; } = "Default Tooltip";
         public string Url { get; set; } = "https://itservices.cvad.unt.edu";
     }
@@ -148,8 +149,8 @@ namespace it_beacon_common.Config
         // --- MODIFIED ---
         /// <summary>
         /// Gets the list of configured quick shortcuts.
-        /// This method reads the raw hex (e.g., E8F2) and formats it
-        /// into the full string (e.g., &#xE8F2;) for the popup UI to consume.
+        /// This method reads the raw hex (e.g., E8F2) and converts it
+        /// into the actual Unicode character (e.g., \uE8F2) for the UI.
         /// </summary>
         public static List<QuickShortcut> GetQuickShortcuts()
         {
@@ -163,12 +164,26 @@ namespace it_beacon_common.Config
 
                 foreach (XmlNode node in nodes)
                 {
-                    // --- FIX: Read InnerText (raw hex) and add the prefix/suffix ---
                     string rawGlyph = node["Glyph"]?.InnerText ?? "E713";
+                    string glyphChar;
+
+                    try
+                    {
+                        // --- THIS IS THE FIX ---
+                        // Convert hex string "E8F2" into the integer
+                        int glyphCode = int.Parse(rawGlyph, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                        // Cast the integer to a char, and then to a string
+                        glyphChar = ((char)glyphCode).ToString();
+                        // --- END OF FIX ---
+                    }
+                    catch
+                    {
+                        glyphChar = "\uE713"; // Fallback to default icon on error
+                    }
 
                     shortcuts.Add(new QuickShortcut
                     {
-                        Glyph = $"&#x{rawGlyph};", // Transform to the full UI string
+                        Glyph = glyphChar, // This now holds the actual character
                         ToolTip = node["ToolTip"]?.InnerText ?? "Link",
                         Url = node["Url"]?.InnerText ?? ""
                     });
@@ -183,7 +198,7 @@ namespace it_beacon_common.Config
         }
 
 
-        // --- MODIFIED ---
+        // --- UNCHANGED ---
         /// <summary>
         /// Reads the entire loaded XML config and flattens it into a list for display
         /// in the Settings Window. This method uses the raw, un-formatted values.
@@ -233,7 +248,7 @@ namespace it_beacon_common.Config
                                         if (shortcutSetting.NodeType == XmlNodeType.Element)
                                         {
                                             bool isGlyph = shortcutSetting.Name == "Glyph";
-                                            // --- FIX: Always read InnerText (raw value) ---
+                                            // This correctly reads the raw hex "E8F2"
                                             string value = shortcutSetting.InnerText;
 
                                             settings.Add(new SettingItem
@@ -241,7 +256,6 @@ namespace it_beacon_common.Config
                                                 Category = categoryName,
                                                 Key = shortcutSetting.Name,
                                                 IsReadOnly = false,
-                                                // "glyph" tells the XAML to use a normal string box
                                                 DisplayType = isGlyph ? "glyph" : "string"
                                             }.Also(s => s.SetOriginalValue(value)));
                                         }
@@ -285,7 +299,7 @@ namespace it_beacon_common.Config
             return settings;
         }
 
-        // --- MODIFIED ---
+        // --- UNCHANGED ---
         /// <summary>
         /// Saves all changed settings back to the settings.xml file.
         /// It expects the raw, un-formatted values from the Settings Window.
@@ -324,10 +338,7 @@ namespace it_beacon_common.Config
 
                         if (targetNode != null)
                         {
-                            // --- FIX: Always save the raw value using InnerText ---
-                            // This is safe for "glyph" because "E8F2" has no special characters.
-                            // This is correct for "bool" ("true"/"false").
-                            // This is correct for "string".
+                            // This correctly saves the raw hex "E8F2"
                             if (item.DisplayType == "bool")
                             {
                                 targetNode.InnerText = item.Value.ToLower();

@@ -32,17 +32,17 @@
   -->
 	<QuickShortcuts>
 		<Shortcut>
-			<Glyph>&#xE8F2;</Glyph>
+			<Glyph>E8F2</Glyph>
 			<ToolTip>Chat with Support</ToolTip>
 			<Url>https://unt-cvad.github.io/link/cvad-chat</Url>
 		</Shortcut>
 		<Shortcut>
-			<Glyph>&#xF0E3;</Glyph>
+			<Glyph>F0E3</Glyph>
 			<ToolTip>Open Support Ticket</ToolTip>
 			<Url>https://unt-cvad.github.io/link/cvad-sharepoint</Url>
 		</Shortcut>
 		<Shortcut>
-			<Glyph>&#xE770;</Glyph>
+			<Glyph>E770</Glyph>
 			<ToolTip>CVAD IT Homepage</ToolTip>
 			<Url>https://itservices.cvad.unt.edu</Url>
 		</Shortcut>
