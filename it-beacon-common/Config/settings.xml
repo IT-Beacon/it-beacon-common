@@ -48,4 +48,11 @@
 		</Shortcut>
 	</QuickShortcuts>
 
+	<ReminderOverlay>
+		<Enabled Key="Enable Reminder" Category="ReminderOverlay" IsReadOnly="false">true</Enabled>
+		<TriggerTime Key="Uptime Trigger (Minutes)" Category="ReminderOverlay" IsReadOnly="false">10080</TriggerTime>
+		<CooldownTime Key="Postponement (Minutes)" Category="ReminderOverlay" IsReadOnly="false">360</CooldownTime>
+		<Message Key="Reminder Message" Category="ReminderOverlay" IsReadOnly="false">Your computer has been running for a long time without a restart. To ensure system stability and apply updates, please restart your machine.</Message>
+	</ReminderOverlay>
+
 </Settings>

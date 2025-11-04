@@ -143,6 +143,16 @@ namespace it_beacon_common.Config
                 return result;
             }
             return defaultValue;
+        } 
+
+        public static int GetInt(string xPath, int defaultValue = 0)
+        {
+            string val = GetString(xPath, defaultValue.ToString());
+            if (int.TryParse(val, out int result))
+            {
+                return result;
+            }
+            return defaultValue;
         }
         #endregion
 
