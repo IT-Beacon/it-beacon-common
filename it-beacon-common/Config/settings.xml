@@ -1,58 +1,59 @@
 ﻿<Settings>
-	<Application>
-		<Name>IT Beacon</Name>
-		<Version>1.0.0</Version>
-	</Application>
-
-	<SnipeIT>
-		<ApiUrl>https://inventory.cvad.unt.edu/api/v1/hardware/byserial</ApiUrl>
-		<!-- 
-      The API Key is now read from here. 
-      The hardcoded key in App.xaml.cs should be removed.
-    -->
-		<ApiKey>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZmNkMTk1OGEwZDc1MTNjNTEzZWQ0NThlZTk5OWE5NmVhYjgwM2U4MTEzNGY4MWE3ZmM1ZGI1MjhiODMzNDE2YWQ4YzA5ODVkYTgyNGM0OTQiLCJpYXQiOjE3NTczNjQzMDAuNzU4NzU1LCJuYmYiOjE3NTczNjQzMDAuNzU4NzU4LCJleHAiOjIzODg1MTYzMDAuNzQwNTQyLCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.MYtoUjhKXH4k73NqHmtbs657nt06B6bweIceKzQCWDzcWDDsbnkACwDSzYPpw6HLuyTQPjv8bsNS82nlO4GsIPt2mqJZR4MLWv8bwEMFzxuyAqJg5uwZFOPVZO0wEFjidI5Gg_n8ke4V8EztqTEh8wQbM8d2qvqjiBtF9auItfYNjWLthWXYLdTXsfeH6bCvQ3Oh5NsPdrNlkGq7iN2DF1kKWGrVVCKq1hfYEv0fTqybRrPAVpzIhkI0fVAKkAlVpR2_7BWr6kLDzuhi3iztSyIaEthFpgITSpqMFz3NYaGuVloQvl-D5I4a8sD70PPmj7R0RjjV74FLHDmk7O2AEY-ze4AtMxEes3Wh9DFuf6Jzsb4jNIYjw7CvPBLBy34ClhD9XKXL4xEbetlMq9znQOfzuj6i70Gbp0KAm7BTWkfaLurNPDjWbZIejH1-trLhKwih1VxlVq7kl52M-mH0HqI-oW22GNxQUyvPYwPKoO3sl0B71W4ho5illHQFDtGlbxfGJ11RG6SrMrLwVLih_wmjWIPSBdok4aknA4Tu9nI2Ux3qJbKTcoArgRZVcg7Mof0gqdxteM7tv5jDu_XhAmHn3Oq1RmTb848w4iqlXeT1sZ4dUXUYL-vaaalMMEhp4yY0tUaqqfKlXIFeLD1TQoimgoLUTBzq3eM9pRLKQbM</ApiKey>
+	<SnipeIT Key="SnipeIT" ToolTip="Configuration for the Snipe-IT asset management integration.">
+		<ApiUrl Key="API URL" Category="SnipeIT" IsReadOnly="false" ToolTip="The base URL for the Snipe-IT API." IsType="string">https://inventory.cvad.unt.edu/api/v1/hardware/byserial</ApiUrl>
+		<ApiKey Key="API Key" Category="SnipeIT" IsReadOnly="true" ToolTip="The API key for authenticating with Snipe-IT." IsType="secret">eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiZmNkMTk1OGEwZDc1MTNjNTEzZWQ0NThlZTk5OWE5NmVhYjgwM2U4MTEzNGY4MWE3ZmM1ZGI1MjhiODMzNDE2YWQ4YzA5ODVkYTgyNGM0OTQiLCJpYXQiOjE3NTczNjQzMDAuNzU4NzU1LCJuYmYiOjE3NTczNjQzMDAuNzU4NzU4LCJleHAiOjIzODg1MTYzMDAuNzQwNTQyLCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.MYtoUjhKXH4k73NqHmtbs657nt06B6bweIceKzQCWDzcWDDsbnkACwDSzYPpw6HLuyTQPjv8bsNS82nlO4GsIPt2mqJZR4MLWv8bwEMFzxuyAqJg5uwZFOPVZO0wEFjidI5Gg_n8ke4V8EztqTEh8wQbM8d2qvqjiBtF9auItfYNjWLthWXYLdTXsfeH6bCvQ3Oh5NsPdrNlkGq7iN2DF1kKWGrVVCKq1hfYEv0fTqybRrPAVpzIhkI0fVAKkAlVpR2_7BWr6kLDzuhi3iztSyIaEthFpgITSpqMFz3NYaGuVloQvl-D5I4a8sD70PPmj7R0RjjV74FLHDmk7O2AEY-ze4AtMxEes3Wh9DFuf6Jzsb4jNIYjw7CvPBLBy34ClhD9XKXL4xEbetlMq9znQOfzuj6i70Gbp0KAm7BTWkfaLurNPDjWbZIejH1-trLhKwih1VxlVq7kl52M-mH0HqI-oW22GNxQUyvPYwPKoO3sl0B71W4ho5illHQFDtGlbxfGJ11RG6SrMrLwVLih_wmjWIPSBdok4aknA4Tu9nI2Ux3qJbKTcoArgRZVcg7Mof0gqdxteM7tv5jDu_XhAmHn3Oq1RmTb848w4iqlXeT1sZ4dUXUYL-vaaalMMEhp4yY0tUaqqfKlXIFeLD1TQoimgoLUTBzq3eM9pRLKQbM</ApiKey>
 	</SnipeIT>
 
 	<!-- 
-    NEW: Configuration for the main popup window.
+    NOTES: Configuration for the main popup window.
     Controls visibility of different info panels.
   -->
-	<PopupWindow>
-		<ShowNetworkInfo>true</ShowNetworkInfo>
-		<ShowRiskScore>true</ShowRiskScore>
-		<ShowUptime>true</ShowUptime>
-		<ShowLocation>true</ShowLocation>
+	<PopupWindow Key="Popup Window" ToolTip="Controls the visibility of different info panels in the main popup window.">
+		<ShowNetworkInfo Key="Show Network Info" Category="PopupWindow" IsReadOnly="false" ToolTip="Show the network information panel." IsType="boolean">true</ShowNetworkInfo>
+		<ShowRiskScore Key="Show Risk Score" Category="PopupWindow" IsReadOnly="false" ToolTip="Show the security risk score panel." IsType="boolean">true</ShowRiskScore>
+		<ShowUptime Key="Show Uptime" Category="PopupWindow" IsReadOnly="false" ToolTip="Show the system uptime panel." IsType="boolean">true</ShowUptime>
+		<ShowLocation Key="Show Location" Category="PopupWindow" IsReadOnly="false" ToolTip="Show the estimated location panel." IsType="boolean">true</ShowLocation>
 	</PopupWindow>
 
 	<!-- 
-    NEW: Configuration for the quick shortcut buttons.
+    NOTES: Configuration for the quick shortcut buttons.
     Add as many <Shortcut> blocks as you want (up to 3 recommended).
     Glyph values are from the Segoe Fluent Icons font.
     You can find glyph codes here: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font
   -->
-	<QuickShortcuts>
+	<QuickShortcuts Key="Quick Shortcuts" ToolTip="Configuration for the quick shortcut buttons displayed in the UI.">
 		<Shortcut>
 			<Glyph>E8F2</Glyph>
 			<ToolTip>Chat with Support</ToolTip>
-			<Url>https://unt-cvad.github.io/link/cvad-chat</Url>
+			<URL>https://unt-cvad.github.io/link/cvad-chat</URL>
 		</Shortcut>
 		<Shortcut>
 			<Glyph>F0E3</Glyph>
 			<ToolTip>Open Support Ticket</ToolTip>
-			<Url>https://unt-cvad.github.io/link/cvad-sharepoint</Url>
+			<URL>https://unt-cvad.github.io/link/cvad-sharepoint</URL>
 		</Shortcut>
 		<Shortcut>
 			<Glyph>E770</Glyph>
 			<ToolTip>CVAD IT Homepage</ToolTip>
-			<Url>https://itservices.cvad.unt.edu</Url>
+			<URL>https://itservices.cvad.unt.edu</URL>
 		</Shortcut>
 	</QuickShortcuts>
 
-	<ReminderOverlay>
-		<Enabled Key="Enable Reminder" Category="ReminderOverlay" IsReadOnly="false">true</Enabled>
-		<TriggerTime Key="Uptime Trigger (Minutes)" Category="ReminderOverlay" IsReadOnly="false">10080</TriggerTime>
-		<CooldownTime Key="Postponement (Minutes)" Category="ReminderOverlay" IsReadOnly="false">360</CooldownTime>
-		<Message Key="Reminder Message" Category="ReminderOverlay" IsReadOnly="false">Your computer has been running for a long time without a restart. To ensure system stability and apply updates, please restart your machine.</Message>
+	<!--
+    NOTES: Configuration for the restart reminder overlay.
+    Controls the trigger time, deferral options, and messaging.
+  -->
+	<ReminderOverlay Key="Reminder Overlay" ToolTip="Configuration for the restart reminder overlay, including triggers and messaging.">
+		<Glyph Key="Reminder Icon" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The icon to display in the reminder overlay." IsType="glyph">E783</Glyph>
+		<Enabled Key="Enable Reminder" Category="ReminderOverlay" IsReadOnly="false" ToolTip="Globally enables or disables the restart reminder feature." IsType="boolean">true</Enabled>
+		<UptimeThreshold Key="Uptime Threshold (Minutes)" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The system uptime, in minutes, that will trigger the reminder." IsType="integer">10080</UptimeThreshold>
+		<DeferralDuration Key="Deferral Duration (Minutes)" Category="ReminderOverlay" IsReadOnly="false" ToolTip="How long, in minutes, to hide the reminder when a user defers." IsType="integer">360</DeferralDuration>
+		<MaxDeferrals Key="Maximum Deferrals" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The maximum number of times a user can defer the restart reminder." IsType="integer">3</MaxDeferrals>
+		<Title Key="Reminder Title" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The main title text of the reminder window." IsType="string">Restart Required</Title>
+		<NormalMessage Key="Normal Reminder Message" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The message shown for a standard restart reminder." IsType="textarea">Your computer has been running for a long time without a restart. To ensure system stability and apply updates, please restart your machine.</NormalMessage>
+		<AggressiveMessage Key="Aggressive Reminder Message" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The message shown when the user has reached the maximum number of deferrals." IsType="textarea">You have reached the maximum number of deferrals. Please restart your computer now to apply critical updates and maintain system stability.</AggressiveMessage>
+		<PrimaryButtonText Key="Primary Button Text" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The text for the primary action button." IsType="string">Restart Now</PrimaryButtonText>
+		<DeferralButtonText Key="Deferral Button Text" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The text for the secondary action button." IsType="string">Restart Later...</DeferralButtonText>
 	</ReminderOverlay>
 
 </Settings>

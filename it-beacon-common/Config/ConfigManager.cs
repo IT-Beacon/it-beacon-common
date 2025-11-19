@@ -30,12 +30,8 @@ namespace it_beacon_common.Config
 
         public string Category { get; set; } = string.Empty;
         public string Key { get; set; } = string.Empty;
-
-        /// <summary>
-        /// A hint for the UI on how to render this setting.
-        /// (e.g., "string", "bool", "glyph")
-        /// </summary>
-        public string DisplayType { get; set; } = "string";
+        public string ToolTip { get; set; } = string.Empty;
+        public string IsType { get; set; } = "string";
 
         // This property will hold the *raw* string (e.g., E8F2)
         public string Value
@@ -195,7 +191,7 @@ namespace it_beacon_common.Config
                     {
                         Glyph = glyphChar, // This now holds the actual character
                         ToolTip = node["ToolTip"]?.InnerText ?? "Link",
-                        Url = node["Url"]?.InnerText ?? ""
+                        Url = node["URL"]?.InnerText ?? ""
                     });
                 }
             }
@@ -257,16 +253,21 @@ namespace it_beacon_common.Config
                                     {
                                         if (shortcutSetting.NodeType == XmlNodeType.Element)
                                         {
-                                            bool isGlyph = shortcutSetting.Name == "Glyph";
                                             // This correctly reads the raw hex "E8F2"
                                             string value = shortcutSetting.InnerText;
+                                            string key = shortcutSetting.Name;
+                                            string toolTip = shortcutSetting.Attributes?["ToolTip"]?.Value ?? string.Empty;
+                                            string isType = "string"; // Default for shortcut properties
+                                            if (key == "Glyph") isType = "glyph";
+                                            if (key == "URL") key = "URL"; // Correct casing
 
                                             settings.Add(new SettingItem
                                             {
                                                 Category = categoryName,
-                                                Key = shortcutSetting.Name,
+                                                Key = key,
                                                 IsReadOnly = false,
-                                                DisplayType = isGlyph ? "glyph" : "string"
+                                                ToolTip = toolTip,
+                                                IsType = isType
                                             }.Also(s => s.SetOriginalValue(value)));
                                         }
                                     }
@@ -276,26 +277,52 @@ namespace it_beacon_common.Config
                     }
                     else if (categoryNode.ChildNodes.Count > 0 && categoryNode.FirstChild?.NodeType == XmlNodeType.Element)
                     {
-                        // Node has child elements (e.g., SnipeIT, PopupWindow)
+                        // Node has child elements (e.g., SnipeIT, PopupWindow, ReminderOverlay)
                         foreach (XmlNode settingNode in categoryNode.ChildNodes)
                         {
-                            if (settingNode.NodeType == XmlNodeType.Element)
+                            if (settingNode.NodeType != XmlNodeType.Element) continue;
+
+                            var keyAttr = settingNode.Attributes?["Key"];
+                            if (keyAttr != null)
+                            {
+                                string key = keyAttr.Value;
+                                string category = settingNode.Attributes?["Category"]?.Value ?? categoryNode.Name;
+                                bool isReadOnly = bool.TryParse(settingNode.Attributes?["IsReadOnly"]?.Value, out var ro) && ro;
+                                string value = settingNode.InnerText;
+                                string toolTip = settingNode.Attributes?["ToolTip"]?.Value ?? string.Empty;
+                                string isType = settingNode.Attributes?["IsType"]?.Value ?? "string";
+
+                                // Special handling for the API key to ensure it's not displayed
+                                if (isType == "secret")
+                                {
+                                    value = "****************";
+                                    isReadOnly = true;
+                                }
+
+                                settings.Add(new SettingItem
+                                {
+                                    Category = category,
+                                    Key = key,
+                                    IsReadOnly = isReadOnly,
+                                    ToolTip = toolTip,
+                                    IsType = isType
+                                }.Also(s => s.SetOriginalValue(value)));
+                            }
+                            // This else block is now mostly redundant but kept as a fallback
+                            else
                             {
                                 bool isApiKey = settingNode.Name.ToLower() == "apikey";
                                 string val = isApiKey ? "****************" : settingNode.InnerText;
-
-                                string displayType = "string";
-                                if (bool.TryParse(settingNode.InnerText, out _))
-                                {
-                                    displayType = "bool";
-                                }
+                                string toolTip = settingNode.Attributes?["ToolTip"]?.Value ?? string.Empty;
+                                string isType = settingNode.Attributes?["IsType"]?.Value ?? "string";
 
                                 settings.Add(new SettingItem
                                 {
                                     Category = categoryNode.Name,
                                     Key = settingNode.Name,
                                     IsReadOnly = isApiKey,
-                                    DisplayType = displayType
+                                    ToolTip = toolTip,
+                                    IsType = isType
                                 }.Also(s => s.SetOriginalValue(val)));
                             }
                         }
@@ -336,20 +363,30 @@ namespace it_beacon_common.Config
                                 var shortcutNodes = _config.SelectNodes("/Settings/QuickShortcuts/Shortcut");
                                 if (shortcutNodes != null && index - 1 < shortcutNodes.Count)
                                 {
-                                    targetNode = shortcutNodes[index - 1]?.SelectSingleNode(item.Key);
+                                    // Handle URL vs Url
+                                    string keyToFind = item.Key == "URL" ? "URL" : item.Key;
+                                    targetNode = shortcutNodes[index - 1]?.SelectSingleNode(keyToFind);
                                 }
                             }
                         }
+                        // --- NEW: Find attribute-based settings to save ---
                         else
                         {
-                            string xPath = $"/Settings/{item.Category}/{item.Key}";
-                            targetNode = _config.SelectSingleNode(xPath);
+                            // For all other attribute-based settings, we find the node by its Key attribute
+                            targetNode = _config.SelectSingleNode($"/Settings/{item.Category}/*[@Key='{item.Key}']");
                         }
 
                         if (targetNode != null)
                         {
+                            // Do not save the value for secrets
+                            if (item.IsType == "secret")
+                            {
+                                // continue to next item
+                                continue;
+                            }
+
                             // This correctly saves the raw hex "E8F2"
-                            if (item.DisplayType == "bool")
+                            if (item.IsType == "boolean")
                             {
                                 targetNode.InnerText = item.Value.ToLower();
                             }
