@@ -54,6 +54,8 @@
 		<AggressiveMessage Key="Aggressive Reminder Message" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The message shown when the user has reached the maximum number of deferrals." IsType="textarea">You have reached the maximum number of deferrals. Please restart your computer now to apply critical updates and maintain system stability.</AggressiveMessage>
 		<PrimaryButtonText Key="Primary Button Text" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The text for the primary action button." IsType="string">Restart Now</PrimaryButtonText>
 		<DeferralButtonText Key="Deferral Button Text" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The text for the secondary action button." IsType="string">Restart Later...</DeferralButtonText>
+		<ShowHeaderImage Key="Show Header Image" Category="ReminderOverlay" IsReadOnly="false" ToolTip="Determines if a header image is shown in the reminder overlay." IsType="boolean">true</ShowHeaderImage>
+		<HeaderImageSource Key="Header Image Source" Category="ReminderOverlay" IsReadOnly="false" ToolTip="The source path or URL for the header image." IsType="string">ms-appx:///Assets/Images/ReminderHeader.png</HeaderImageSource>
 	</ReminderOverlay>
 
 </Settings>
